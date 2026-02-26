@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <h1>My Account</h1>
+        <p>View and update your personal information</p>
+    </div>
+
+    <div class="profile-grid">
+        <!-- Sidebar -->
+        <div class="profile-sidebar">
+            <div class="profile-avatar-wrapper">
+                <div class="profile-avatar-huge" id="profilePageAvatar">?</div>
+            </div>
+            <h2 id="profilePageUsername">Username</h2>
+            <p class="email" id="profilePageEmail">user@example.com</p>
+
+            <ul class="sidebar-nav">
+                <li><a href="{{ url_for('profile') }}" class="active"><i class="fas fa-user-circle"></i> Personal
+                        Info</a></li>
+                <li><a href="{{ url_for('orders') }}"><i class="fas fa-shopping-bag"></i> My Orders</a></li>
+                <li><a href="{{ url_for('wishlist') }}"><i class="fas fa-heart"></i> Wishlist</a></li>
+                <li><a href="javascript:void(0)" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="profile-main">
+            <h3 class="form-section-title"><i class="fas fa-edit"></i> Edit Profile</h3>
+
+            <form id="profileUpdateForm" onsubmit="handleProfileUpdate(event)" class="profile-form">
+                <div class="form-group">
+                    <label for="profile-username">Username</label>
+                    <input type="text" id="profile-username" readonly style="background: #f5f5f5; cursor: not-allowed;">
+                </div>
+
+                <div class="form-group">
+                    <label for="profile-email">Email Address</label>
+                    <input type="email" id="profile-email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="profile-phone">Phone Number</label>
+                    <input type="tel" id="profile-phone" placeholder="Enter your phone number">
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="profile-address">Shipping Address</label>
+                    <textarea id="profile-address" placeholder="Enter your full shipping address"></textarea>
+                </div>
+
+                <button type="submit" class="save-btn" id="saveProfileBtn">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize profile page data
+    document.addEventListener('DOMContentLoaded', () => {
+        const currentUser = JSON.parse(localStorage.getItem('lomiees_current_user'));
+        if (!currentUser) {
+            window.location.href = '/';
+            return;
+        }
+
+        const firstLetter = currentUser.username.charAt(0).toUpperCase();
+
+        // Display elements
+        document.getElementById('profilePageAvatar').textContent = firstLetter;
+        document.getElementById('profilePageUsername').textContent = currentUser.username;
+        document.getElementById('profilePageEmail').textContent = currentUser.email;
+
+        // Form fields
+        document.getElementById('profile-username').value = currentUser.username;
+        document.getElementById('profile-email').value = currentUser.email;
+        document.getElementById('profile-phone').value = currentUser.phone || '';
+        document.getElementById('profile-address').value = currentUser.address || '';
+    });
+
+    async function handleProfileUpdate(event) {
+        event.preventDefault();
+        const btn = document.getElementById('saveProfileBtn');
+        const originalContent = btn.innerHTML;
+
+        const username = document.getElementById('profile-username').value;
+        const email = document.getElementById('profile-email').value;
+        const phone = document.getElementById('profile-phone').value;
+        const address = document.getElementById('profile-address').value;
+
+        try {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            const response = await fetch('/api/profile/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, phone, address })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showToast('Profile updated successfully!', 'success');
+                // Update local storage
+                localStorage.setItem('lomiees_current_user', JSON.stringify(data.user));
+                // Update UI displays
+                document.getElementById('profilePageEmail').textContent = data.user.email;
+            } else {
+                showToast(data.message || 'Update failed', 'error');
+            }
+        } catch (error) {
+            showToast('An error occurred. Please try again.', 'error');
+            console.error('Update error:', error);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+        }
+    }
+</script>
+{% endblock %}

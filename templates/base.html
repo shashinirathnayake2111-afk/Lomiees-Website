@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lomiees - Fashion Store</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/Liceria.jpg') }}" type="image/jpg">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="brand-link">
+                <img src="{{ url_for('static', filename='images/Liceria.jpg') }}" alt="Menu" class="menu-icon">
+                <h1 class="logo">Lomiees</h1>
+            </a>
+            <nav>
+                <div class="header-right">
+                    <div class="search-container">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" placeholder="Search your favorite products..." class="search-input">
+                    </div>
+
+                    <div class="icon-badge-wrapper">
+                        <button><a href="javascript:void(0)" class="favourite-icon" id="wishlist-icon">
+                                <i class="fa-solid fa-heart"></i></a></button>
+                        <span class="wishlist-badge" id="wishlist-badge"></span>
+                    </div>
+
+                    <div class="icon-badge-wrapper">
+                        <button><a href="javascript:void(0)" class="cart-icon" id="cart-icon">
+                                <i class="fa-solid fa-cart-shopping"></i></a></button>
+                        <span class="cart-badge" id="cart-badge"></span>
+                    </div>
+
+                    <div class="icon-badge-wrapper">
+                        <button><a href="javascript:void(0)" class="profile-icon" id="profile-icon"
+                                onclick="openAuthDrawer()">
+                                <i class="fa-solid fa-user"></i></a></button>
+                    </div>
+                </div>
+
+                <div class="menu-toggle" onclick="toggleMenu()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="banner">
+        <div class="links">
+            <a href="#new-arrivals">New Arrivals</a>
+            <a href="#women">Women</a>
+            <a href="#men">Men</a>
+            <a href="#kids">Kids</a>
+            <a href="#accessories">Accessories</a>
+            <a href="#jewellwery">Jewellery</a>
+            <a href="#shoes">Shoes</a>
+            <a href="#gift">Gift Vouchers</a>
+            <a href="#sale">Sale</a>
+        </div>
+    </div>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+
+            <!-- Brand + Social column -->
+            <div class="footer-brand-col">
+                <h2 class="footer-logo">Lomiees</h2>
+                <p class="footer-tagline">Your style, your story.<br>Discover fashion that speaks.</p>
+                <div class="footer-socials">
+                    <a href="#" class="social-icon facebook" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-icon google" aria-label="Google"><i class="fab fa-google"></i></a>
+                    <a href="#" class="social-icon instagram" aria-label="Instagram"><i
+                            class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-icon tiktok" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+                </div>
+            </div>
+
+            <!-- Links columns -->
+            <div class="footer-links-area">
+                <div class="footer-col">
+                    <h3 class="footer-heading">CUSTOMER CARE</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">About Company</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Our Branches</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h3 class="footer-heading">INFORMATION</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Return &amp; Refund</a></li>
+                        <li><a href="#">Shipping Polices</a></li>
+                        <li><a href="#">Terms &amp; Conditions</a></li>
+                        <li><a href="#">Privacy Polices</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h3 class="footer-heading">CONTACT US</h3>
+                    <ul class="footer-links footer-contact">
+                        <li><i class="fa-solid fa-location-dot"></i><span>Sri Gamunu Road, Kiribathgoda</span></li>
+                        <li><i class="fa-solid fa-phone"></i><span>011 4322 544</span></li>
+                        <li><i class="fa-solid fa-envelope"></i><span>lomiees@gmail.com</span></li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2025 Lomiees. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Authentication Drawer -->
+    <div class="auth-overlay" id="authOverlay" onclick="closeAuthDrawer()"></div>
+    <div class="auth-drawer" id="authDrawer">
+        <button class="close-drawer" onclick="closeAuthDrawer()">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <!-- Login Form Container -->
+        <div id="loginFormContainer" class="auth-content active">
+            <div class="auth-header">
+                <h2>Welcome Back</h2>
+                <p>Login to your account</p>
+            </div>
+            <form id="loginForm" onsubmit="handleLogin(event)" class="auth-form">
+                <div class="form-group">
+                    <label for="login-username">Username</label>
+                    <input type="text" name="username" id="login-username" placeholder="Enter your username" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" name="password" id="login-password" placeholder="Enter your password"
+                            required>
+                        <i class="fas fa-eye toggle-password"
+                            onclick="togglePasswordVisibility('login-password', this)"></i>
+                    </div>
+                </div>
+                <div class="form-options">
+                    <span></span>
+                    <a href="#" class="forgot-password">Forgot Password?</a>
+                </div>
+                <button type="submit" class="auth-btn">Login</button>
+            </form>
+            <div class="auth-divider">Or login with</div>
+            <div class="social-auth">
+                <a href="#" class="social-btn google" title="Login with Google"><i class="fab fa-google"></i></a>
+                <a href="#" class="social-btn facebook" title="Login with Facebook"><i
+                        class="fab fa-facebook-f"></i></a>
+            </div>
+            <div class="auth-footer">
+                <p>New here? <a href="javascript:void(0)" onclick="switchAuthMode('signup')">Create an account</a></p>
+            </div>
+        </div>
+
+        <!-- Signup Form Container -->
+        <div id="signupFormContainer" class="auth-content">
+            <div class="auth-header">
+                <h2>Join Lomiees</h2>
+                <p>Create your account today</p>
+            </div>
+            <form id="signupForm" onsubmit="handleSignup(event)" class="auth-form">
+                <div class="form-group">
+                    <label for="signup-username">Username</label>
+                    <input type="text" name="username" id="signup-username" placeholder="Choose a username" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email Address</label>
+                    <input type="email" name="email" id="signup-email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" name="password" id="signup-password" placeholder="Create a password"
+                            required>
+                        <i class="fas fa-eye toggle-password"
+                            onclick="togglePasswordVisibility('signup-password', this)"></i>
+                    </div>
+                </div>
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox" name="remember"> Remember Password
+                    </label>
+                </div>
+                <button type="submit" class="auth-btn">Create Account</button>
+            </form>
+            <div class="auth-divider">Or join with</div>
+            <div class="social-auth">
+                <a href="#" class="social-btn google" title="Join with Google"><i class="fab fa-google"></i></a>
+                <a href="#" class="social-btn facebook" title="Join with Facebook"><i class="fab fa-facebook-f"></i></a>
+            </div>
+            <div class="auth-footer">
+                <p>Already have an account? <a href="javascript:void(0)" onclick="switchAuthMode('login')">Login
+                        here</a></p>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

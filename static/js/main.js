@@ -4,6 +4,21 @@ const slides = document.querySelectorAll('.carousel-slide');
 const totalSlides = slides.length;
 const dotsContainer = document.getElementById('dotsContainer');
 let autoSlideInterval;
+let wishlistCount = 0;
+let cartCount = 0;
+
+function updateBadges() {
+    const wishlistBadge = document.getElementById('wishlist-badge');
+    const cartBadge = document.getElementById('cart-badge');
+
+    if (wishlistBadge) {
+        wishlistBadge.classList.toggle('active', wishlistCount > 0);
+    }
+
+    if (cartBadge) {
+        cartBadge.classList.toggle('active', cartCount > 0);
+    }
+}
 
 // Create dots
 for (let i = 0; i < totalSlides; i++) {
@@ -343,16 +358,28 @@ function createProductCard(product) {
 function toggleWishlist(productId, btn) {
     btn.classList.toggle('active');
     const isWishlisted = btn.classList.contains('active');
+
+    if (isWishlisted) {
+        wishlistCount++;
+    } else {
+        wishlistCount = Math.max(0, wishlistCount - 1);
+    }
+
     btn.style.background = isWishlisted ? '#ff0000' : 'white';
     btn.style.color = isWishlisted ? 'white' : '#ff0000';
+
+    updateBadges();
     showToast(isWishlisted ? 'Added to Wishlist ♥' : 'Removed from Wishlist', isWishlisted ? 'wishlist' : 'success');
 }
 
 // Add to cart
 function addToCart(productId, btn) {
+    cartCount++;
     btn.style.transform = 'scale(0.85) rotate(10deg)';
     setTimeout(() => { btn.style.transform = ''; }, 300);
+
     const product = products.find(p => p.id === productId);
+    updateBadges();
     if (product) showToast(`"${product.name}" added to cart ✓`);
 }
 
@@ -426,3 +453,192 @@ document.addEventListener('DOMContentLoaded', () => {
     startCountdown();
 });
 
+
+function togglePasswordVisibility(inputId, icon) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+// Authentication Drawer Functions
+function openAuthDrawer() {
+    const currentUser = JSON.parse(localStorage.getItem('lomiees_current_user'));
+
+    // If logged in, redirect to full profile page instead of drawer
+    if (currentUser) {
+        window.location.href = '/profile';
+        return;
+    }
+
+    const overlay = document.getElementById('authOverlay');
+    const drawer = document.getElementById('authDrawer');
+    if (overlay && drawer) {
+        switchAuthMode('login'); // Default for guests
+        overlay.classList.add('active');
+        drawer.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeAuthDrawer() {
+    const overlay = document.getElementById('authOverlay');
+    const drawer = document.getElementById('authDrawer');
+    if (overlay && drawer) {
+        overlay.classList.remove('active');
+        drawer.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+function switchAuthMode(mode) {
+    const loginContainer = document.getElementById('loginFormContainer');
+    const signupContainer = document.getElementById('signupFormContainer');
+    const profileContainer = document.getElementById('userProfileContainer');
+
+    // Hide all first
+    loginContainer.classList.remove('active');
+    signupContainer.classList.remove('active');
+    if (profileContainer) profileContainer.classList.remove('active');
+
+    // Show target
+    if (mode === 'signup') {
+        signupContainer.classList.add('active');
+    } else if (mode === 'profile') {
+        if (profileContainer) profileContainer.classList.add('active');
+    } else {
+        loginContainer.classList.add('active');
+    }
+}
+
+// Authentication Logic
+async function handleSignup(event) {
+    event.preventDefault();
+
+    const username = document.getElementById('signup-username').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+
+    // Basic Validation
+    if (!username || !email || !password) {
+        showToast('Please fill in all fields', 'error');
+        return;
+    }
+
+    if (password.length < 6) {
+        showToast('Password must be at least 6 characters', 'error');
+        return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showToast('Please enter a valid email', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showToast('Signup successful! Please login.', 'success');
+            document.getElementById('signupForm').reset();
+            switchAuthMode('login');
+        } else {
+            showToast(data.message || 'Signup failed', 'error');
+        }
+    } catch (error) {
+        showToast('An error occurred. Please try again.', 'error');
+        console.error('Signup error:', error);
+    }
+}
+
+async function handleLogin(event) {
+    event.preventDefault();
+
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+
+    try {
+        const response = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showToast(data.message, 'success');
+
+            // Save current user session locally for UI persistence
+            localStorage.setItem('lomiees_current_user', JSON.stringify({
+                username: data.username,
+                email: data.email
+            }));
+
+            updateUserUI();
+
+            setTimeout(() => {
+                closeAuthDrawer();
+                const loginForm = document.getElementById('loginForm');
+                if (loginForm) loginForm.reset();
+                window.location.reload(); // Refresh to apply changes globally
+            }, 1000);
+        } else {
+            showToast(data.message || 'Invalid username or password', 'error');
+        }
+    } catch (error) {
+        showToast('An error occurred. Please try again.', 'error');
+        console.error('Login error:', error);
+    }
+}
+
+function updateUserUI() {
+    const currentUser = JSON.parse(localStorage.getItem('lomiees_current_user'));
+    const profileIconLink = document.querySelector('.profile-icon');
+
+    if (currentUser && profileIconLink) {
+        const firstLetter = currentUser.username.charAt(0).toUpperCase();
+        profileIconLink.innerHTML = `<span class="user-avatar">${firstLetter}</span>`;
+
+        // Populate Profile Card in Drawer
+        const largeAvatar = document.getElementById('profileLargeAvatar');
+        const usernameDisplay = document.getElementById('profileUsernameDisplay');
+        const emailDisplay = document.getElementById('profileEmailDisplay');
+
+        if (largeAvatar) largeAvatar.textContent = firstLetter;
+        if (usernameDisplay) usernameDisplay.textContent = currentUser.username;
+        if (emailDisplay) emailDisplay.textContent = currentUser.email || 'Member';
+    } else if (profileIconLink) {
+        profileIconLink.innerHTML = `<i class="fa-solid fa-user"></i>`;
+    }
+}
+
+function handleLogout() {
+    localStorage.removeItem('lomiees_current_user');
+    updateUserUI(); // Reset the icon immediately
+    showToast('Logged out successfully', 'success');
+    
+    setTimeout(() => {
+        if (typeof closeAuthDrawer === 'function') closeAuthDrawer();
+        window.location.replace('/');
+    }, 800);
+}
+
+// Initializations
+document.addEventListener('DOMContentLoaded', () => {
+    // Check if other initializations exist elsewhere, if not add them here
+    updateUserUI();
+});

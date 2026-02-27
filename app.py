@@ -22,12 +22,22 @@ with app.app_context():
 def home():
     return render_template("index.html")
 
-@app.route('/signup', methods=['POST'])
+@app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    data = request.get_json()
+    if request.method == 'GET':
+        return render_template('signup.html')
+        
+    if request.is_json:
+        data = request.get_json()
+    else:
+        data = request.form
+        
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
+    
+    if not username or not email or not password:
+        return jsonify({'success': False, 'message': 'All fields are required'}), 400
     
     if User.query.filter_by(username=username).first():
         return jsonify({'success': False, 'message': 'Username already exists'}), 400
@@ -41,11 +51,21 @@ def signup():
 
     return jsonify({'success': True, 'message': 'Signup successful!'})
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    data = request.get_json()
+    if request.method == 'GET':
+        return render_template('login.html')
+
+    if request.is_json:
+        data = request.get_json()
+    else:
+        data = request.form
+        
     username = data.get('username')
     password = data.get('password')
+    
+    if not username or not password:
+        return jsonify({'success': False, 'message': 'Username and password are required'}), 400
     
     user = User.query.filter_by(username=username, password=password).first()
     

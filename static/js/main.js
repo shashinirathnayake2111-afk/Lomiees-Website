@@ -1,7 +1,7 @@
 let currentSlide = 0;
 const wrapper = document.getElementById('carouselWrapper');
 const slides = document.querySelectorAll('.carousel-slide');
-const totalSlides = slides.length;
+const totalSlides = slides ? slides.length : 0;
 const dotsContainer = document.getElementById('dotsContainer');
 let autoSlideInterval;
 let wishlistCount = 0;
@@ -21,12 +21,14 @@ function updateBadges() {
 }
 
 // Create dots
-for (let i = 0; i < totalSlides; i++) {
-    const dot = document.createElement('div');
-    dot.className = 'dot';
-    if (i === 0) dot.classList.add('active');
-    dot.onclick = () => goToSlide(i);
-    dotsContainer.appendChild(dot);
+if (dotsContainer && totalSlides > 0) {
+    for (let i = 0; i < totalSlides; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'dot';
+        if (i === 0) dot.classList.add('active');
+        dot.onclick = () => goToSlide(i);
+        dotsContainer.appendChild(dot);
+    }
 }
 
 const dots = document.querySelectorAll('.dot');
@@ -72,24 +74,30 @@ function resetAutoSlide() {
 }
 
 // Start automatic sliding
-startAutoSlide();
-
-// Pause on hover
-const container = document.querySelector('.carousel-container');
-container.addEventListener('mouseenter', () => {
-    clearInterval(autoSlideInterval);
-});
-
-container.addEventListener('mouseleave', () => {
+if (wrapper && totalSlides > 0) {
     startAutoSlide();
-});
+
+    // Pause on hover
+    const container = document.querySelector('.carousel-container');
+    if (container) {
+        container.addEventListener('mouseenter', () => {
+            clearInterval(autoSlideInterval);
+        });
+
+        container.addEventListener('mouseleave', () => {
+            startAutoSlide();
+        });
+    }
+}
 
 const searchInput = document.querySelector('.search-container input');
-searchInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        alert('Search functionality: ' + searchInput.value);
-    }
-});
+if (searchInput) {
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            alert('Search functionality: ' + searchInput.value);
+        }
+    });
+}
 
 // Brand data with placeholder logos 
 const brands = [
@@ -122,6 +130,7 @@ function updateBrandsPerView() {
 
 function renderBrands() {
     const track = document.getElementById('brandsTrack');
+    if (!track) return;
     // Duplicate brands for infinite scroll effect
     const duplicatedBrands = [...brands, ...brands, ...brands];
     track.innerHTML = duplicatedBrands.map(brand => `
@@ -134,6 +143,7 @@ function renderBrands() {
 
 function startAutoScroll() {
     const track = document.getElementById('brandsTrack');
+    if (!track || !track.children.length) return;
     let scrollPosition = 0;
     const speed = 1; // pixels per frame
 
@@ -157,9 +167,11 @@ function startAutoScroll() {
 // Initialized via DOMContentLoaded below
 
 // Initialize
-updateBrandsPerView();
-renderBrands();
-setTimeout(startAutoScroll, 100);
+if (document.getElementById('brandsTrack')) {
+    updateBrandsPerView();
+    renderBrands();
+    setTimeout(startAutoScroll, 100);
+}
 
 // Modern Reveal Animations
 const revealCallback = (entries, observer) => {
@@ -554,7 +566,15 @@ async function handleSignup(event) {
         if (data.success) {
             showToast('Signup successful! Please login.', 'success');
             document.getElementById('signupForm').reset();
-            switchAuthMode('login');
+
+            // If on dedicated signup page, scroll to top or redirect to login
+            if (window.location.pathname === '/signup') {
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 1500);
+            } else {
+                switchAuthMode('login');
+            }
         } else {
             showToast(data.message || 'Signup failed', 'error');
         }
@@ -591,10 +611,16 @@ async function handleLogin(event) {
             updateUserUI();
 
             setTimeout(() => {
-                closeAuthDrawer();
                 const loginForm = document.getElementById('loginForm');
                 if (loginForm) loginForm.reset();
-                window.location.reload(); // Refresh to apply changes globally
+
+                // If on dedicated login page, redirect to home or profile
+                if (window.location.pathname === '/login') {
+                    window.location.href = '/';
+                } else {
+                    closeAuthDrawer();
+                    window.location.reload(); // Refresh to apply changes globally
+                }
             }, 1000);
         } else {
             showToast(data.message || 'Invalid username or password', 'error');
@@ -607,11 +633,13 @@ async function handleLogin(event) {
 
 function updateUserUI() {
     const currentUser = JSON.parse(localStorage.getItem('lomiees_current_user'));
-    const profileIconLink = document.querySelector('.profile-icon');
+    const profileIconLink = document.getElementById('profile-icon');
 
     if (currentUser && profileIconLink) {
         const firstLetter = currentUser.username.charAt(0).toUpperCase();
         profileIconLink.innerHTML = `<span class="user-avatar">${firstLetter}</span>`;
+        profileIconLink.onclick = null; // Remove the drawer opener
+        profileIconLink.setAttribute('href', '/profile'); // Make it go to profile directly
 
         // Populate Profile Card in Drawer
         const largeAvatar = document.getElementById('profileLargeAvatar');
@@ -623,18 +651,21 @@ function updateUserUI() {
         if (emailDisplay) emailDisplay.textContent = currentUser.email || 'Member';
     } else if (profileIconLink) {
         profileIconLink.innerHTML = `<i class="fa-solid fa-user"></i>`;
+        profileIconLink.onclick = openAuthDrawer;
+        profileIconLink.setAttribute('href', 'javascript:void(0)');
     }
 }
 
 function handleLogout() {
+    console.log("Logging out...");
     localStorage.removeItem('lomiees_current_user');
     updateUserUI(); // Reset the icon immediately
     showToast('Logged out successfully', 'success');
-    
+
     setTimeout(() => {
         if (typeof closeAuthDrawer === 'function') closeAuthDrawer();
         window.location.replace('/');
-    }, 800);
+    }, 500);
 }
 
 // Initializations

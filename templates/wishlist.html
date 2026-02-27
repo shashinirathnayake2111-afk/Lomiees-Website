@@ -2,55 +2,17 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
-<style>
-    .empty-state {
-        text-align: center;
-        padding: 50px 20px;
-    }
-
-    .empty-state i {
-        font-size: 4rem;
-        color: #eee;
-        margin-bottom: 20px;
-    }
-
-    .empty-state h3 {
-        font-size: 1.5rem;
-        margin-bottom: 10px;
-        color: #333;
-    }
-
-    .empty-state p {
-        color: #666;
-        margin-bottom: 25px;
-    }
-
-    .shop-now-btn {
-        display: inline-block;
-        background: var(--primary-color);
-        color: #fff;
-        padding: 12px 30px;
-        border-radius: 12px;
-        text-decoration: none;
-        font-weight: 700;
-        transition: var(--transition);
-    }
-
-    .shop-now-btn:hover {
-        background: var(--primary-hover);
-        transform: translateY(-2px);
-    }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/wishlist.css') }}">
 {% endblock %}
 
 {% block content %}
-<div class="profile-container">
+<div class="wishlist-page-container">
     <div class="profile-header">
-        <h1>Wishlist</h1>
-        <p>View your saved favorite items</p>
+        <h1>My Wishlist</h1>
+        <p>Your curated collection of favorite pieces</p>
     </div>
 
-    <div class="profile-grid">
+    <div class="wishlist-grid-layout">
         <!-- Sidebar -->
         <div class="profile-sidebar">
             <div class="profile-avatar-wrapper">
@@ -69,12 +31,40 @@
         </div>
 
         <!-- Main Content -->
-        <div class="profile-main">
-            <div class="empty-state">
-                <i class="fas fa-heart"></i>
-                <h3>Wishlist is Empty</h3>
-                <p>Save items you love to keep track of them here!</p>
-                <a href="/" class="shop-now-btn">Explore Collections</a>
+        <div class="wishlist-main">
+            <div class="wishlist-items-grid" id="wishlistItems">
+                <!-- Sample items for demonstration -->
+                <div class="wishlist-card">
+                    <button class="remove-wishlist-btn" title="Remove from wishlist">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div class="wishlist-card-image">
+                        <img src="/static/images/card 03.png" alt="Product">
+                    </div>
+                    <div class="wishlist-card-content">
+                        <h3 class="wishlist-card-title">Sleeveless Linen Jumpsuit</h3>
+                        <p class="wishlist-card-price">Rs. 6,530</p>
+                        <button class="add-to-cart-wishlist">
+                            <i class="fas fa-shopping-bag"></i> Add to Bag
+                        </button>
+                    </div>
+                </div>
+
+                <div class="wishlist-card">
+                    <button class="remove-wishlist-btn" title="Remove from wishlist">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div class="wishlist-card-image">
+                        <img src="/static/images/card 05.jpg" alt="Product">
+                    </div>
+                    <div class="wishlist-card-content">
+                        <h3 class="wishlist-card-title">Red Party Wear Frock</h3>
+                        <p class="wishlist-card-price">Rs. 11,390</p>
+                        <button class="add-to-cart-wishlist">
+                            <i class="fas fa-shopping-bag"></i> Add to Bag
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -83,15 +73,13 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const currentUser = JSON.parse(localStorage.getItem('lomiees_current_user'));
-        if (!currentUser) {
-            window.location.href = '/';
-            return;
-        }
 
-        const firstLetter = currentUser.username.charAt(0).toUpperCase();
-        document.getElementById('profilePageAvatar').textContent = firstLetter;
-        document.getElementById('profilePageUsername').textContent = currentUser.username;
-        document.getElementById('profilePageEmail').textContent = currentUser.email;
+        if (currentUser) {
+            const firstLetter = currentUser.username.charAt(0).toUpperCase();
+            document.getElementById('profilePageAvatar').textContent = firstLetter;
+            document.getElementById('profilePageUsername').textContent = currentUser.username;
+            document.getElementById('profilePageEmail').textContent = currentUser.email;
+        }
     });
 </script>
 {% endblock %}

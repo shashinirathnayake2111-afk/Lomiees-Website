@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+    rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sizely.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="sizely-hero">
+    <div class="container">
+        <h1 class="premium-title">Sizely Fit Calculator</h1>
+        <p class="section-subtitle">Get the perfect size recommendation based on your body measurements.</p>
+    </div>
+</section>
+
+<section class="sizely-calculator">
+    <div class="container">
+        <div class="calculator-grid">
+            <div class="calculator-card glass-morphism">
+                <form id="sizely-form" method="POST" action="/sizely">
+                    <div class="form-group">
+                        <label for="gender">Select Gender</label>
+                        <div class="select-wrapper">
+                            <select name="gender" id="gender" required>
+                                <option value="" disabled selected>Who are you shopping for?</option>
+                                <option value="Men">Men</option>
+                                <option value="Women">Women</option>
+                                <option value="Kids">Kids</option>
+                            </select>
+                            <i class="fas fa-venus-mars"></i>
+                        </div>
+                    </div>
+
+                    <div class="input-row">
+                        <div class="form-group">
+                            <label for="height">Height (cm)</label>
+                            <div class="input-wrapper">
+                                <input type="number" name="height" id="height" placeholder="e.g. 175" step="0.1"
+                                    required>
+                                <span class="unit">cm</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="weight">Weight (kg)</label>
+                            <div class="input-wrapper">
+                                <input type="number" name="weight" id="weight" placeholder="e.g. 70" step="0.1"
+                                    required>
+                                <span class="unit">kg</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="calculate-btn">
+                        <span>Calculate My Size</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+
+            <div class="result-card glass-morphism {% if recommended_size %}show{% endif %}" id="result-card">
+                <div class="result-content">
+                    {% if recommended_size %}
+                    <div class="result-icon pulse">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3>Your Recommended Size</h3>
+                    <div class="size-display">
+                        <span class="size-value">{{ recommended_size }}</span>
+                    </div>
+                    <p>Based on your measurements, this size will provide the best fit for our collections.</p>
+                    <div class="result-actions">
+                        <a href="/#new-arrivals" class="shop-btn">Shop Now</a>
+                        <button class="reset-btn" onclick="resetCalculator()">Recalculate</button>
+                    </div>
+                    {% else %}
+                    <div class="empty-result">
+                        <i class="fas fa-calculator"></i>
+                        <p>Enter your details to see your recommended size</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="size-info">
+    <div class="container">
+        <div class="info-grid">
+            <div class="info-item">
+                <i class="fas fa-ruler-combined"></i>
+                <h4>Precise Measurements</h4>
+                <p>Our algorithm uses data from thousands of body types to provide accurate results.</p>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-tshirt"></i>
+                <h4>Perfect Fit</h4>
+                <p>Say goodbye to returns. Shop with confidence knowing exactly what works for you.</p>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-sync-alt"></i>
+                <h4>Seamless Updates</h4>
+                <p>Our size charts are updated seasonally to match our latest collections.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function resetCalculator() {
+        window.location.href = '/sizely';
+    }
+</script>
+{% endblock %}

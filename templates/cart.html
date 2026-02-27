@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cart.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="cart-container">
+    <div class="cart-header">
+        <h1>Shopping Bag</h1>
+        <p>Review your items before checkout</p>
+    </div>
+
+    <div class="cart-grid" id="cartGrid">
+        <!-- Content will be populated by JS -->
+        <div class="cart-items" id="cartItemsList">
+            <div class="empty-cart">
+                <i class="fas fa-shopping-bag"></i>
+                <h3>Your bag is empty</h3>
+                <p>Looks like you haven't added anything yet.</p>
+                <a href="/" class="shop-btn">Start Shopping</a>
+            </div>
+        </div>
+
+        <div class="cart-summary" id="cartSummary">
+            <h3 class="summary-title">Order Summary</h3>
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <span id="subtotal">Rs. 0</span>
+            </div>
+            <div class="summary-row">
+                <span>Shipping</span>
+                <span>FREE</span>
+            </div>
+            <div class="summary-row">
+                <span>Discount</span>
+                <span>- Rs. 0</span>
+            </div>
+            <div class="summary-total">
+                <span>Total</span>
+                <span id="totalPrice">Rs. 0</span>
+            </div>
+            <button class="checkout-btn" onclick="handleCheckout()">
+                Proceed to Checkout <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Sample cart items for demonstration if real ones aren't available
+        const sampleItems = [
+            { id: 1, name: 'Amani Aurelia Linen Wrap Dress', price: 3400, qty: 1, image: '/static/images/card 01.png' },
+            { id: 2, name: 'Mens Casual Polo T-shirt', price: 2890, qty: 2, image: '/static/images/card 02.png' }
+        ];
+
+        renderCart(sampleItems);
+    });
+
+    function renderCart(items) {
+        const list = document.getElementById('cartItemsList');
+        if (items.length === 0) {
+            list.innerHTML = `
+                <div class="empty-cart">
+                    <i class="fas fa-shopping-bag"></i>
+                    <h3>Your bag is empty</h3>
+                    <p>Looks like you haven't added anything yet.</p>
+                    <a href="/" class="shop-btn">Start Shopping</a>
+                </div>
+            `;
+            document.getElementById('cartSummary').style.display = 'none';
+            return;
+        }
+
+        list.innerHTML = items.map(item => `
+            <div class="cart-item">
+                <div class="item-image">
+                    <img src="${item.image}" alt="${item.name}">
+                </div>
+                <div class="item-info">
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-brand">Lomiees Premium</div>
+                    <div class="item-controls">
+                        <div class="quantity-picker">
+                            <button class="qty-btn" onclick="updateQty(${item.id}, -1)">-</button>
+                            <span class="qty-val">${item.qty}</span>
+                            <button class="qty-btn" onclick="updateQty(${item.id}, 1)">+</button>
+                        </div>
+                        <button class="remove-btn" onclick="removeItem(${item.id})">Remove</button>
+                    </div>
+                </div>
+                <div class="item-price" style="font-weight: 700;">Rs. ${item.price * item.qty}</div>
+            </div>
+        `).join('');
+
+        updateTotal(items);
+    }
+
+    function updateTotal(items) {
+        const subtotal = items.reduce((sum, item) => sum + (item.price * item.qty), 0);
+        document.getElementById('subtotal').textContent = `Rs. ${subtotal}`;
+        document.getElementById('totalPrice').textContent = `Rs. ${subtotal}`;
+    }
+
+    function handleCheckout() {
+        showToast('Processing your order...', 'success');
+        setTimeout(() => {
+            alert('Checkout functionality would go here!');
+        }, 1000);
+    }
+</script>
+{% endblock %}

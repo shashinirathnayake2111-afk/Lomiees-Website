@@ -13,7 +13,69 @@
 body {
     background-color: rgb(249, 249, 249);
     overflow-x: hidden;
+    color: #1a1a1a;
 }
+
+/* --- Global Dark Mode Overrides --- */
+.dark-mode body {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+.dark-mode header {
+    background: #1e1e1e;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid #333;
+}
+
+.dark-mode .brand-link .logo {
+    color: #d966d6;
+}
+
+.dark-mode .menu-toggle span {
+    background-color: #e0e0e0;
+}
+
+.dark-mode .search-container {
+    background: #2a2a2a;
+}
+
+.dark-mode .search-input {
+    color: #fff;
+}
+
+.dark-mode .search-input::placeholder {
+    color: #999;
+}
+
+.dark-mode .banner {
+    background: #6a0e6a;
+    /* slightly darker tint for banner in dark mode */
+}
+
+.dark-mode .header-right button {
+    color: #d966d6;
+}
+
+.dark-mode .header-right button:hover a {
+    color: #fbd6fb;
+}
+
+.dark-mode .user-avatar {
+    background: #d966d6;
+    color: #1e1e1e !important;
+}
+
+.dark-mode h1,
+.dark-mode h2,
+.dark-mode h3,
+.dark-mode h4,
+.dark-mode h5 {
+    color: #fff;
+}
+
+/* ---------------------------------- */
+
 
 .container {
     max-width: 1200px;

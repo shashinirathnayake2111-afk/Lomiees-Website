@@ -672,4 +672,39 @@ function handleLogout() {
 document.addEventListener('DOMContentLoaded', () => {
     // Check if other initializations exist elsewhere, if not add them here
     updateUserUI();
+    applyCurrencyConversion();
 });
+
+function applyCurrencyConversion() {
+    const targetCurrency = localStorage.getItem('lomiees_currency') || 'LKR';
+    if (targetCurrency === 'LKR') return; // Default, no action needed
+
+    const rates = {
+        'USD': { rate: 0.0033, symbol: '$' },     // Approx Rs. 300 = $1
+        'EUR': { rate: 0.0030, symbol: '€' },
+        'GBP': { rate: 0.0026, symbol: '£' }
+    };
+
+    const conversion = rates[targetCurrency];
+    if (!conversion) return;
+
+    // Target elements containing prices
+    const priceElements = document.querySelectorAll('.item-price-tag, .product-price');
+
+    priceElements.forEach(el => {
+        const text = el.innerText;
+        // Look for "Rs." followed by numbers and optional commas
+        if (text.includes('Rs.')) {
+            // Extract the number
+            const numberStr = text.replace(/Rs\.?/g, '').replace(/,/g, '').trim();
+            const numericValue = parseFloat(numberStr);
+
+            if (!isNaN(numericValue)) {
+                const convertedValue = (numericValue * conversion.rate).toFixed(2);
+                // Format with commas and new symbol
+                const formattedValue = parseFloat(convertedValue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                el.innerText = `${conversion.symbol} ${formattedValue}`;
+            }
+        }
+    });
+}

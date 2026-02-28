@@ -151,6 +151,10 @@ def wishlist():
 def cart():
     return render_template('cart.html')
 
+@app.route('/settings')
+def settings():
+    return render_template('settings.html')
+
 @app.route('/api/profile/update', methods=['POST'])
 def update_profile():
     data = request.get_json()

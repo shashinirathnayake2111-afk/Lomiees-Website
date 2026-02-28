@@ -63,7 +63,7 @@
                 <li><a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> Personal Info</a></li>
                 <li><a href="{{ url_for('orders') }}" class="active"><i class="fas fa-shopping-bag"></i> My Orders</a>
                 </li>
-                <li><a href="{{ url_for('wishlist') }}"><i class="fas fa-heart"></i> Wishlist</a></li>
+                <li><a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a></li>
                 <li><a href="javascript:void(0)" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </li>
             </ul>
@@ -71,11 +71,141 @@
 
         <!-- Main Content -->
         <div class="profile-main">
-            <div class="empty-state">
-                <i class="fas fa-box-open"></i>
-                <h3>No Orders Yet</h3>
-                <p>Looks like you haven't placed any orders. Start exploring our latest collections!</p>
-                <a href="/" class="shop-now-btn">Start Shopping</a>
+            <h3 class="form-section-title"><i class="fas fa-shopping-bag"></i> Order History</h3>
+
+            <div class="order-filters">
+                <button class="filter-btn active" onclick="filterOrders('all')">All Orders</button>
+                <button class="filter-btn" onclick="filterOrders('processing')">Processing</button>
+                <button class="filter-btn" onclick="filterOrders('ongoing')">Ongoing</button>
+                <button class="filter-btn" onclick="filterOrders('completed')">Completed</button>
+            </div>
+
+            <div class="orders-list">
+                <!-- Order Card 1: Processing -->
+                <div class="order-card" data-status="processing">
+                    <div class="order-card-header">
+                        <div class="order-info">
+                            <span class="order-number">Order #LM-89241</span>
+                            <span class="order-date">Feb 28, 2026</span>
+                        </div>
+                        <span class="status-badge processing">Processing</span>
+                    </div>
+                    <div class="order-card-body">
+                        <div class="order-item-minimal">
+                            <div class="item-img-container">
+                                <img src="/static/images/card 01.png" alt="Amani Aurelia Linen Wrap Dress">
+                            </div>
+                            <div class="item-details-minimal">
+                                <h4>Amani Aurelia Linen Wrap Dress</h4>
+                                <p class="item-meta-text">Qty: 1 · Size: M</p>
+                                <div class="item-color-preview">
+                                    <span class="color-dot-wrapper"><span class="color-dot"
+                                            style="background-color: #f5f5f5;"></span></span>
+                                </div>
+                                <span class="item-price-tag">Rs. 3,400</span>
+                            </div>
+                        </div>
+                        <div class="order-tracking-minimal">
+                            <div class="tracking-track">
+                                <div class="step completed">
+                                    <div class="dot"></div>
+                                    <span>Ordered</span>
+                                </div>
+                                <div class="step active">
+                                    <div class="dot"></div>
+                                    <span>Processing</span>
+                                </div>
+                                <div class="step">
+                                    <div class="dot"></div>
+                                    <span>Shipped</span>
+                                </div>
+                                <div class="step">
+                                    <div class="dot"></div>
+                                    <span>Delivered</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Card 2: Shipped/Ongoing -->
+                <div class="order-card" data-status="ongoing">
+                    <div class="order-card-header">
+                        <div class="order-info">
+                            <span class="order-number">Order #LM-89102</span>
+                            <span class="order-date">Feb 25, 2026</span>
+                        </div>
+                        <span class="status-badge ongoing">Ongoing</span>
+                    </div>
+                    <div class="order-card-body">
+                        <div class="order-item-minimal">
+                            <div class="item-img-container">
+                                <img src="/static/images/card 02.png" alt="Mens Casual Polo T-shirt">
+                            </div>
+                            <div class="item-details-minimal">
+                                <h4>Mens Casual Polo T-shirt</h4>
+                                <p class="item-meta-text">Qty: 2 · Size: L</p>
+                                <div class="item-color-preview">
+                                    <span class="color-dot-wrapper"><span class="color-dot"
+                                            style="background-color: #333;"></span></span>
+                                    <span class="color-dot-wrapper"><span class="color-dot"
+                                            style="background-color: #1a237e;"></span></span>
+                                </div>
+                                <span class="item-price-tag">Rs. 5,780</span>
+                            </div>
+                        </div>
+                        <div class="order-tracking-minimal">
+                            <div class="tracking-track">
+                                <div class="step completed">
+                                    <div class="dot"></div>
+                                    <span>Ordered</span>
+                                </div>
+                                <div class="step completed">
+                                    <div class="dot"></div>
+                                    <span>Processing</span>
+                                </div>
+                                <div class="step active">
+                                    <div class="dot"></div>
+                                    <span>Shipped</span>
+                                </div>
+                                <div class="step">
+                                    <div class="dot"></div>
+                                    <span>Delivered</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Card 3: Completed -->
+                <div class="order-card" data-status="completed">
+                    <div class="order-card-header">
+                        <div class="order-info">
+                            <span class="order-number">Order #LM-88950</span>
+                            <span class="order-date">Feb 15, 2026</span>
+                        </div>
+                        <span class="status-badge completed">Completed</span>
+                    </div>
+                    <div class="order-card-body">
+                        <div class="order-item-minimal">
+                            <div class="item-img-container">
+                                <img src="/static/images/card 03.png" alt="Sleeveless Linen Jumpsuit">
+                            </div>
+                            <div class="item-details-minimal">
+                                <h4>Sleeveless Linen Jumpsuit</h4>
+                                <p class="item-meta-text">Qty: 1 · Size: S</p>
+                                <div class="item-color-preview">
+                                    <span class="color-dot-wrapper"><span class="color-dot"
+                                            style="background-color: #9e179e;"></span></span>
+                                </div>
+                                <span class="item-price-tag">Rs. 6,530</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="order-card-footer-minimal">
+                        <button class="action-btn-secondary">Buy Again</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -94,5 +224,45 @@
         document.getElementById('profilePageUsername').textContent = currentUser.username;
         document.getElementById('profilePageEmail').textContent = currentUser.email;
     });
+
+    function filterOrders(status) {
+        // Update active button
+        const buttons = document.querySelectorAll('.filter-btn');
+        buttons.forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('onclick').includes(`'${status}'`)) {
+                btn.classList.add('active');
+            }
+        });
+
+        // Filter cards
+        const cards = document.querySelectorAll('.order-card');
+        cards.forEach(card => {
+            if (status === 'all' || card.getAttribute('data-status') === status) {
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+
+        // Show empty state if no orders match
+        const visibleCards = document.querySelectorAll('.order-card:not(.hidden)');
+        const emptyState = document.querySelector('.empty-state-filter');
+
+        // Remove existing empty state if it exists
+        if (emptyState) emptyState.remove();
+
+        if (visibleCards.length === 0) {
+            const container = document.querySelector('.orders-list');
+            const placeholder = document.createElement('div');
+            placeholder.className = 'empty-state empty-state-filter';
+            placeholder.innerHTML = `
+                <i class="fas fa-search"></i>
+                <h3>No ${status} orders found</h3>
+                <p>Try checking a different status tab.</p>
+            `;
+            container.appendChild(placeholder);
+        }
+    }
 </script>
 {% endblock %}

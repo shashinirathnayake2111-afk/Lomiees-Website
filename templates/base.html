@@ -11,6 +11,47 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Global Preference Loader (Executes before page renders to prevent flash) -->
+    <script>
+        (function () {
+            try {
+                // Load Theme
+                var theme = localStorage.getItem('lomiees_theme');
+                if (theme === 'dark') {
+                    document.documentElement.classList.add('dark-mode');
+                }
+            } catch (e) { }
+        })();
+    </script>
+
+    <!-- Aggressively Hide Google Translate Default UI -->
+    <style>
+        /* Hide the banner iframe */
+        .goog-te-banner-frame.skiptranslate,
+        .skiptranslate>iframe.skiptranslate {
+            display: none !important;
+        }
+
+        /* Prevent body shift caused by Google's iframe */
+        body {
+            top: 0px !important;
+            position: static !important;
+        }
+
+        /* Hide popups and specific google UI classes (Modern and Legacy) */
+        #goog-gt-tt,
+        .goog-tooltip,
+        .goog-tooltip:hover,
+        .goog-text-highlight,
+        .goog-te-gadget-icon,
+        .VIpgJd-ZVi9od-ORHb-OEVmcd,
+        .VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
+        .VIpgJd-ZVi9od-aZ2wEe-OiiCO {
+            display: none !important;
+        }
+    </style>
+
     {% block extra_css %}{% endblock %}
 </head>
 
@@ -68,6 +109,7 @@
             <a href="#gift">Gift Vouchers</a>
             <a href="#sale">Sale</a>
             <a href="/sizely">Sizely</a>
+            <a href="/lookly">Lookly</a>
         </div>
     </div>
 
@@ -220,6 +262,22 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <!-- Google Translate Script (Hidden) -->
+    <div id="google_translate_element" style="display: none;"></div>
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,si,fr,es', // English, Sinhala, French, Spanish
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript"
+        src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
     {% block extra_js %}{% endblock %}
 </body>
 

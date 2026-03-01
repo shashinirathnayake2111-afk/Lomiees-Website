@@ -1,6 +1,30 @@
 :root {
+    /* Color Palette */
+    --primary-purple: #9e179e;
+    --dark-purple: #6a0e6a;
+    --light-purple: #fbd6fb;
+    --accent-purple: #d966d6;
+    --bg-light: #f9f9f9;
+    --bg-dark: #121212;
+    --card-light: #ffffff;
+    --card-dark: #1e1e1e;
+    --text-primary: #1a1a1a;
+    --text-secondary: #666666;
+    --text-dark-primary: #e0e0e0;
+    --text-dark-secondary: #bbbbbb;
+
+    /* Layout */
+    --header-height: 55px;
+    --banner-height: 54px;
+    --container-max: 1200px;
+
+    /* Effects */
     --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-    --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.15);
+    --radius-lg: 20px;
+    --radius-md: 12px;
 }
 
 * {
@@ -18,22 +42,22 @@ body {
 
 /* --- Global Dark Mode Overrides --- */
 .dark-mode body {
-    background-color: #121212;
-    color: #e0e0e0;
+    background-color: var(--bg-dark);
+    color: var(--text-dark-primary);
 }
 
 .dark-mode header {
-    background: #1e1e1e;
+    background: var(--card-dark);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     border-bottom: 1px solid #333;
 }
 
 .dark-mode .brand-link .logo {
-    color: #9e179e !important;
+    color: var(--accent-purple) !important;
 }
 
 .dark-mode .menu-toggle span {
-    background-color: #e0e0e0;
+    background-color: var(--text-dark-primary);
 }
 
 .dark-mode .search-container {
@@ -49,70 +73,162 @@ body {
 }
 
 .dark-mode .banner {
-    background: #6a0e6a;
-    /* slightly darker tint for banner in dark mode */
+    background: var(--dark-purple);
 }
 
-.dark-mode .header-right button {
-    color: #d966d6;
+.dark-mode .header-right button,
+.dark-mode .header-right a {
+    color: var(--accent-purple);
 }
 
 .dark-mode .header-right button:hover a {
-    color: #fbd6fb;
-}
-
-.dark-mode .user-avatar {
-    background: #d966d6;
-    color: #1e1e1e !important;
+    color: var(--light-purple);
 }
 
 .dark-mode h1,
 .dark-mode h2,
 .dark-mode h3,
-.dark-mode h4,
-.dark-mode h5 {
+.dark-mode h4 {
     color: #fff !important;
 }
 
-/* Home Page Specific Overrides */
-.dark-mode .brands-section,
-.dark-mode .new-collections-section {
-    background: #121212 !important;
+/* Standardized Product Card Component */
+.product-card {
+    background: var(--card-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border: 1px solid transparent;
 }
 
-.dark-mode .brand-card,
-.dark-mode .product-card,
-.dark-mode .product-details-section {
-    background: #1e1e1e !important;
-    border-color: #333 !important;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4) !important;
+.product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--light-purple);
 }
 
-.dark-mode .brands-header p,
-.dark-mode .collection-header p {
-    color: #bbb !important;
+.image-container {
+    position: relative;
+    padding-top: 135%;
+    /* High aspect ratio for premium look */
+    overflow: hidden;
+    background: #eee;
+}
+
+.product-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.product-card:hover .product-image {
+    transform: scale(1.08);
+}
+
+.product-actions {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+    padding: 20px 15px 15px;
+    display: flex;
+    gap: 10px;
+    transform: translateY(100%);
+    transition: var(--transition);
+    opacity: 0;
+}
+
+.product-card:hover .product-actions {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.btn-action {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: var(--transition);
+}
+
+.btn-quick-view {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-add-cart {
+    background: var(--primary-purple);
+    color: white;
+}
+
+.btn-add-cart:hover {
+    background: var(--dark-purple);
+}
+
+.btn-quick-view:hover {
+    background: white;
+    color: var(--primary-purple);
+}
+
+.product-info {
+    padding: 18px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-name {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 2.8em;
+}
+
+.product-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.product-price {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--primary-purple);
+}
+
+/* Dark Mode Overrides for Products */
+.dark-mode .product-card {
+    background: var(--card-dark);
+    border-color: #333;
 }
 
 .dark-mode .product-name {
-    color: #e0e0e0 !important;
+    color: var(--text-dark-primary);
 }
 
 .dark-mode .product-price {
-    color: #fff !important;
-}
-
-.dark-mode .wishlist-btn {
-    background: #2a2a2a !important;
-}
-
-.dark-mode .wishlist-btn:not(.red-heart) {
-    color: #e0e0e0 !important;
-}
-
-.dark-mode .footer-content p,
-.dark-mode .footer-links a,
-.dark-mode .contact-info p {
-    color: #ccc;
+    color: var(--accent-purple);
 }
 
 /* ---------------------------------- */
@@ -259,11 +375,12 @@ header .container {
 .wishlist-badge,
 .cart-badge {
     position: absolute;
-    top: -2px;
-    right: -3px;
-    background: #6a0e6a;
-    width: 9px;
-    height: 9px;
+    top: -5px;
+    right: -6px;
+    background: #9e179e;
+    color: white;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     box-shadow: 0 0 0 2px white;
     pointer-events: none;
@@ -271,6 +388,11 @@ header .container {
     transform: scale(0);
     opacity: 0;
     z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    font-weight: 700;
 }
 
 .wishlist-badge.active,
@@ -280,7 +402,7 @@ header .container {
 }
 
 .cart-badge {
-    background: #6a0e6a;
+    background: #9e179e;
 }
 
 .user-avatar {

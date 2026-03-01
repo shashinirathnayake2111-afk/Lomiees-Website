@@ -16,9 +16,7 @@
         <div class="cart-items" id="cartItemsList">
             <div class="empty-cart">
                 <i class="fas fa-shopping-bag"></i>
-                <h3>Your bag is empty</h3>
-                <p>Looks like you haven't added anything yet.</p>
-                <a href="/" class="shop-btn">Start Shopping</a>
+                <p>Loading your bag...</p>
             </div>
         </div>
 
@@ -49,18 +47,34 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // Sample cart items for demonstration if real ones aren't available
-        const sampleItems = [
-            { id: 1, name: 'Amani Aurelia Linen Wrap Dress', price: 3400, qty: 1, image: '/static/images/card 01.png' },
-            { id: 2, name: 'Mens Casual Polo T-shirt', price: 2890, qty: 2, image: '/static/images/card 02.png' }
-        ];
-
-        renderCart(sampleItems);
+        loadCart();
     });
+
+    async function loadCart() {
+        const currentUser = JSON.parse(localStorage.getItem('lomiees_current_user'));
+        if (!currentUser) {
+            renderCart([]);
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/cart?username=${currentUser.username}`);
+            const data = await response.json();
+
+            if (data.success) {
+                renderCart(data.items);
+            } else {
+                renderCart([]);
+            }
+        } catch (error) {
+            console.error('Load cart error:', error);
+            renderCart([]);
+        }
+    }
 
     function renderCart(items) {
         const list = document.getElementById('cartItemsList');
-        if (items.length === 0) {
+        if (!items || items.length === 0) {
             list.innerHTML = `
                 <div class="empty-cart">
                     <i class="fas fa-shopping-bag"></i>
@@ -73,8 +87,13 @@
             return;
         }
 
+        document.getElementById('cartSummary').style.display = 'block';
+
         list.innerHTML = items.map(item => `
             <div class="cart-item">
+                <button class="item-remove-circle" onclick="removeItem(${item.id})">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
                 <div class="item-image">
                     <img src="${item.image}" alt="${item.name}">
                 </div>
@@ -87,7 +106,6 @@
                             <span class="qty-val">${item.qty}</span>
                             <button class="qty-btn" onclick="updateQty(${item.id}, 1)">+</button>
                         </div>
-                        <button class="remove-btn" onclick="removeItem(${item.id})">Remove</button>
                     </div>
                 </div>
                 <div class="item-price" style="font-weight: 700;">Rs. ${item.price * item.qty}</div>
@@ -95,6 +113,37 @@
         `).join('');
 
         updateTotal(items);
+    }
+
+    async function updateQty(productId, change) {
+        const currentUser = JSON.parse(localStorage.getItem('lomiees_current_user'));
+        if (!currentUser) return;
+
+        try {
+            const response = await fetch('/api/cart/update_qty', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: currentUser.username,
+                    product_id: productId,
+                    change: change
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                loadCart(); // Refresh the cart
+                // Also update the global count if it changed (e.g. item removed)
+                if (typeof loadCounts === 'function') loadCounts();
+            }
+        } catch (error) {
+            console.error('Update qty error:', error);
+        }
+    }
+
+    function removeItem(productId) {
+        removeFromCart(productId, () => {
+            loadCart();
+        });
     }
 
     function updateTotal(items) {

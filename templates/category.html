@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    .category-page {
+        padding: 10px 0 100px;
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .category-header {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+
+    .category-header h1 {
+        font-size: 3.5rem;
+        font-weight: 800;
+        margin-bottom: 15px;
+        background: linear-gradient(135deg, var(--primary-purple), var(--dark-purple));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-family: 'Fredoka', sans-serif;
+    }
+
+    .category-header p {
+        color: var(--text-secondary);
+        font-size: 1.2rem;
+        font-weight: 500;
+    }
+
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 40px;
+    }
+
+    .empty-category {
+        text-align: center;
+        padding: 120px 20px;
+        grid-column: 1 / -1;
+    }
+
+    .empty-category i {
+        font-size: 5rem;
+        color: #eee;
+        margin-bottom: 30px;
+        display: block;
+    }
+
+    .empty-category h3 {
+        font-size: 2rem;
+        color: var(--text-primary);
+        margin-bottom: 10px;
+    }
+
+    .dark-mode .category-header p {
+        color: var(--text-dark-secondary);
+    }
+
+    .dark-mode .empty-category h3 {
+        color: var(--text-dark-primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container category-page">
+    <div class="category-header">
+        <h1>{{ category_name }}</h1>
+        <p>Discover our exclusive {{ category_name.lower() }} collection</p>
+    </div>
+
+    <div class="products-grid">
+        {% if products %}
+        {% for product in products %}
+        <div class="product-card">
+            <div class="image-container">
+                <img src="{{ product.image }}" alt="{{ product.name }}" class="product-image">
+                <button class="wishlist-btn" onclick="toggleWishlist('{{ product.id }}', this)">
+                    <i class="fa-solid fa-heart"></i>
+                </button>
+                <div class="product-actions">
+                    <button class="btn-action btn-quick-view" onclick="showProductDetails('{{ product.id }}')">Quick
+                        View</button>
+                    <button class="btn-action btn-add-cart" onclick="addToCart('{{ product.id }}', this)">Add to
+                        Bag</button>
+                </div>
+            </div>
+            <div class="product-info">
+                <h3 class="product-name">{{ product.name }}</h3>
+                <div class="product-footer">
+                    <span class="product-price">Rs.{{ product.price }}</span>
+                    <div class="product-rating" style="color: #ffc107; font-size: 0.9rem;">
+                        <i class="fas fa-star"></i>
+                        <span style="color: var(--text-secondary); margin-left: 4px;">4.5</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-category">
+            <i class="fas fa-box-open"></i>
+            <h3>No items found</h3>
+            <p>We are currently updating this collection. Please check back soon!</p>
+            <a href="/" class="btn-action btn-add-cart"
+                style="display: inline-block; margin-top: 30px; text-decoration: none; padding: 12px 30px;">Back to
+                Home</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

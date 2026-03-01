@@ -34,36 +34,9 @@
         <div class="wishlist-main">
             <div class="wishlist-items-grid" id="wishlistItems">
                 <!-- Sample items for demonstration -->
-                <div class="wishlist-card">
-                    <button class="remove-wishlist-btn" title="Remove from wishlist">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    <div class="wishlist-card-image">
-                        <img src="/static/images/card 03.png" alt="Product">
-                    </div>
-                    <div class="wishlist-card-content">
-                        <h3 class="wishlist-card-title">Sleeveless Linen Jumpsuit</h3>
-                        <p class="wishlist-card-price">Rs. 6,530</p>
-                        <button class="add-to-cart-wishlist">
-                            <i class="fas fa-shopping-bag"></i> Add to Bag
-                        </button>
-                    </div>
-                </div>
-
-                <div class="wishlist-card">
-                    <button class="remove-wishlist-btn" title="Remove from wishlist">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    <div class="wishlist-card-image">
-                        <img src="/static/images/card 05.jpg" alt="Product">
-                    </div>
-                    <div class="wishlist-card-content">
-                        <h3 class="wishlist-card-title">Red Party Wear Frock</h3>
-                        <p class="wishlist-card-price">Rs. 11,390</p>
-                        <button class="add-to-cart-wishlist">
-                            <i class="fas fa-shopping-bag"></i> Add to Bag
-                        </button>
-                    </div>
+                <div class="empty-state">
+                    <i class="fas fa-heart"></i>
+                    <p>Loading your wishlist...</p>
                 </div>
             </div>
         </div>
@@ -79,7 +52,65 @@
             document.getElementById('profilePageAvatar').textContent = firstLetter;
             document.getElementById('profilePageUsername').textContent = currentUser.username;
             document.getElementById('profilePageEmail').textContent = currentUser.email;
+            loadWishlist();
         }
     });
+
+    async function loadWishlist() {
+        const currentUser = JSON.parse(localStorage.getItem('lomiees_current_user'));
+        if (!currentUser) return;
+
+        try {
+            const response = await fetch(`/api/wishlist/items?username=${currentUser.username}`);
+            const data = await response.json();
+            if (data.success) {
+                renderWishlist(data.items);
+            } else {
+                renderWishlist([]);
+            }
+        } catch (error) {
+            console.error('Load wishlist error:', error);
+            renderWishlist([]);
+        }
+    }
+
+    function renderWishlist(items) {
+        const grid = document.getElementById('wishlistItems');
+        if (items.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-heart-broken"></i>
+                    <h3>Your wishlist is empty</h3>
+                    <p>Start adding some favorites!</p>
+                    <a href="/" class="shop-now-btn">Explore Collection</a>
+                </div>
+            `;
+            return;
+        }
+
+        grid.innerHTML = items.map(item => `
+            <div class="wishlist-card">
+                <button class="remove-wishlist-btn" title="Remove from wishlist" onclick="removeWishlistItem(${item.id})">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="wishlist-card-image">
+                    <img src="${item.image}" alt="${item.name}">
+                </div>
+                <div class="wishlist-card-content">
+                    <h3 class="wishlist-card-title">${item.name}</h3>
+                    <p class="wishlist-card-price">${item.currentPrice}</p>
+                    <button class="add-to-cart-wishlist" onclick="addToCart(${item.id}, this)">
+                        <i class="fas fa-shopping-bag"></i> Add to Bag
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function removeWishlistItem(productId) {
+        removeFromWishlist(productId, () => {
+            loadWishlist();
+        });
+    }
 </script>
 {% endblock %}

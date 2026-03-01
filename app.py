@@ -15,6 +15,19 @@ class User(db.Model):
     phone = db.Column(db.String(20), nullable=True)
     address = db.Column(db.Text, nullable=True)
 
+class CartItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    product_id = db.Column(db.Integer, nullable=False)
+    quantity = db.Column(db.Integer, default=1)
+    user = db.relationship('User', backref=db.backref('cart_items', lazy=True))
+
+class WishlistItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    product_id = db.Column(db.Integer, nullable=False)
+    user = db.relationship('User', backref=db.backref('wishlist_items', lazy=True))
+
 class SizeChart(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     gender = db.Column(db.String(10), nullable=False)  # 'Men', 'Women', 'Kids'
@@ -288,6 +301,222 @@ def try_on_api():
             })
         else:
             return jsonify({'success': False, 'message': result_message}), 400
+
+@app.route('/api/cart/add', methods=['POST'])
+def add_to_cart():
+    data = request.get_json()
+    username = data.get('username')
+    product_id = data.get('product_id')
+    
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({'success': False, 'message': 'User not found. Please login.'}), 401
+    
+    # Check if item already exists in cart, then increment quantity
+    item = CartItem.query.filter_by(user_id=user.id, product_id=product_id).first()
+    if item:
+        item.quantity += 1
+    else:
+        new_item = CartItem(user_id=user.id, product_id=product_id)
+        db.session.add(new_item)
+    
+    db.session.commit()
+    cart_count = CartItem.query.filter_by(user_id=user.id).count()
+    return jsonify({'success': True, 'cart_count': cart_count})
+
+@app.route('/api/wishlist/toggle', methods=['POST'])
+def toggle_wishlist_api():
+    data = request.get_json()
+    username = data.get('username')
+    product_id = data.get('product_id')
+    
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({'success': False, 'message': 'User not found. Please login.'}), 401
+    
+    item = WishlistItem.query.filter_by(user_id=user.id, product_id=product_id).first()
+    if item:
+        db.session.delete(item)
+        message = 'Removed from Wishlist'
+        status = 'removed'
+    else:
+        new_item = WishlistItem(user_id=user.id, product_id=product_id)
+        db.session.add(new_item)
+        message = 'Added to Wishlist'
+        status = 'added'
+        
+    db.session.commit()
+    wishlist_count = WishlistItem.query.filter_by(user_id=user.id).count()
+    return jsonify({'success': True, 'message': message, 'status': status, 'wishlist_count': wishlist_count})
+
+@app.route('/api/counts', methods=['GET'])
+def get_counts():
+    username = request.args.get('username')
+    if not username:
+        return jsonify({'success': False, 'cart_count': 0, 'wishlist_count': 0})
+        
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({'success': False, 'cart_count': 0, 'wishlist_count': 0})
+        
+    cart_count = CartItem.query.filter_by(user_id=user.id).count()
+    wishlist_count = WishlistItem.query.filter_by(user_id=user.id).count()
+    
+    return jsonify({
+        'success': True, 
+        'cart_count': cart_count, 
+        'wishlist_count': wishlist_count
+    })
+
+@app.route('/api/cart/remove', methods=['POST'])
+def remove_from_cart():
+    data = request.get_json()
+    username = data.get('username')
+    product_id = data.get('product_id')
+    
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({'success': False, 'message': 'User not found'}), 401
+    
+    item = CartItem.query.filter_by(user_id=user.id, product_id=product_id).first()
+    if item:
+        db.session.delete(item)
+        db.session.commit()
+        
+    cart_count = CartItem.query.filter_by(user_id=user.id).count()
+    return jsonify({'success': True, 'cart_count': cart_count})
+
+@app.route('/api/wishlist/remove', methods=['POST'])
+def remove_from_wishlist():
+    data = request.get_json()
+    username = data.get('username')
+    product_id = data.get('product_id')
+    
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({'success': False, 'message': 'User not found'}), 401
+    
+    item = WishlistItem.query.filter_by(user_id=user.id, product_id=product_id).first()
+    if item:
+        db.session.delete(item)
+        db.session.commit()
+    
+    wishlist_count = WishlistItem.query.filter_by(user_id=user.id).count()
+    return jsonify({'success': True, 'wishlist_count': wishlist_count})
+
+# Helper to get product details (since there's no Product model yet, using the list from frontend logic)
+def get_product_by_id(pid):
+    # This matches the 'products' array in main.js
+    products_data = [
+        {'id': 1, 'name': 'Amani Aurelia Linen Wrap Dress', 'price': 3400, 'image': '/static/images/card 01.png', 'category': 'women', 'is_new': True},
+        {'id': 2, 'name': 'Mens Casual Polo T-shirt', 'price': 2890, 'image': '/static/images/card 02.png', 'category': 'men', 'is_sale': True},
+        {'id': 3, 'name': 'Sleeveless Linen Jumpsuit', 'price': 6530, 'image': '/static/images/card 03.png', 'category': 'women'},
+        {'id': 4, 'name': 'Sleeveless Frock', 'price': 2750, 'image': '/static/images/card 04.png', 'category': 'kids'},
+        {'id': 5, 'name': 'Red Short Sleeve Party Wear', 'price': 11390, 'image': '/static/images/card 05.jpg', 'category': 'women', 'is_sale': True},
+        {'id': 6, 'name': 'Women Linen Office Pant', 'price': 2700, 'image': '/static/images/card 06.png', 'category': 'women'},
+        {'id': 7, 'name': 'Long Sleeve Mens White Shirt', 'price': 2700, 'image': '/static/images/card 07.jpg', 'category': 'men', 'is_new': True},
+        {'id': 8, 'name': 'Short Sleeve Black Frock', 'price': 2400, 'image': '/static/images/card 08.jpg', 'category': 'women'}
+    ]
+    return next((p for p in products_data if p['id'] == pid), None)
+
+def get_all_products():
+    return [
+        {'id': 1, 'name': 'Amani Aurelia Linen Wrap Dress', 'price': 3400, 'image': '/static/images/card 01.png', 'category': 'women', 'is_new': True},
+        {'id': 2, 'name': 'Mens Casual Polo T-shirt', 'price': 2890, 'image': '/static/images/card 02.png', 'category': 'men', 'is_sale': True},
+        {'id': 3, 'name': 'Sleeveless Linen Jumpsuit', 'price': 6530, 'image': '/static/images/card 03.png', 'category': 'women'},
+        {'id': 4, 'name': 'Sleeveless Frock', 'price': 2750, 'image': '/static/images/card 04.png', 'category': 'kids'},
+        {'id': 5, 'name': 'Red Short Sleeve Party Wear', 'price': 11390, 'image': '/static/images/card 05.jpg', 'category': 'women', 'is_sale': True},
+        {'id': 6, 'name': 'Women Linen Office Pant', 'price': 2700, 'image': '/static/images/card 06.png', 'category': 'women'},
+        {'id': 7, 'name': 'Long Sleeve Mens White Shirt', 'price': 2700, 'image': '/static/images/card 07.jpg', 'category': 'men', 'is_new': True},
+        {'id': 8, 'name': 'Short Sleeve Black Frock', 'price': 2400, 'image': '/static/images/card 08.jpg', 'category': 'women'}
+    ]
+
+@app.route('/category/<name>')
+def category_page(name):
+    products = [p for p in get_all_products() if p['category'] == name.lower()]
+    return render_template('category.html', category_name=name.capitalize(), products=products)
+
+@app.route('/new-arrivals')
+def new_arrivals():
+    products = [p for p in get_all_products() if p.get('is_new')]
+    return render_template('category.html', category_name='New Arrivals', products=products)
+
+@app.route('/sale')
+def sale_page():
+    products = [p for p in get_all_products() if p.get('is_sale')]
+    return render_template('category.html', category_name='Special Sale', products=products)
+
+@app.route('/accessories')
+def accessories_page():
+    # Placeholder for accessories as we don't have many in the mock list
+    return render_template('category.html', category_name='Accessories', products=[])
+
+@app.route('/jewellery')
+def jewellery_page():
+    return render_template('category.html', category_name='Jewellery', products=[])
+
+@app.route('/shoes')
+def shoes_page():
+    return render_template('category.html', category_name='Shoes', products=[])
+
+@app.route('/api/cart', methods=['GET'])
+def get_cart_items():
+    username = request.args.get('username')
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({'success': False, 'items': []})
+    
+    items = []
+    for ci in user.cart_items:
+        product = get_product_by_id(ci.product_id)
+        if product:
+            items.append({
+                'id': ci.product_id,
+                'name': product['name'],
+                'price': product['price'],
+                'qty': ci.quantity,
+                'image': product['image']
+            })
+    return jsonify({'success': True, 'items': items})
+
+@app.route('/api/wishlist/items', methods=['GET'])
+def get_wishlist_items():
+    username = request.args.get('username')
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({'success': False, 'items': []})
+    
+    items = []
+    for wi in user.wishlist_items:
+        product = get_product_by_id(wi.product_id)
+        if product:
+            items.append({
+                'id': wi.product_id,
+                'name': product['name'],
+                'currentPrice': f"Rs.{product['price']}",
+                'image': product['image']
+            })
+    return jsonify({'success': True, 'items': items})
+
+@app.route('/api/cart/update_qty', methods=['POST'])
+def update_cart_qty():
+    data = request.get_json()
+    username = data.get('username')
+    product_id = data.get('product_id')
+    change = data.get('change') # +1 or -1
+    
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({'success': False, 'message': 'User not found'}), 401
+    
+    item = CartItem.query.filter_by(user_id=user.id, product_id=product_id).first()
+    if item:
+        item.quantity += change
+        if item.quantity <= 0:
+            db.session.delete(item)
+        db.session.commit()
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'message': 'Item not found'}), 404
 
 if __name__ == "__main__":
     app.run(debug=True)

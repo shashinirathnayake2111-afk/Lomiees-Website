@@ -13,12 +13,41 @@ function updateBadges() {
 
     if (wishlistBadge) {
         wishlistBadge.classList.toggle('active', wishlistCount > 0);
+        wishlistBadge.textContent = wishlistCount > 0 ? wishlistCount : '';
     }
 
     if (cartBadge) {
         cartBadge.classList.toggle('active', cartCount > 0);
+        cartBadge.textContent = cartCount > 0 ? cartCount : '';
     }
 }
+
+function toggleTheme() {
+    const isDark = document.documentElement.classList.toggle('dark-mode');
+    localStorage.setItem('lomiees_theme', isDark ? 'dark' : 'light');
+
+    // Update icon
+    const themeIcon = document.querySelector('#themeToggle i');
+    if (themeIcon) {
+        if (isDark) {
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
+        } else {
+            themeIcon.classList.remove('fa-sun');
+            themeIcon.classList.add('fa-moon');
+        }
+    }
+}
+
+// Set initial icon state on load
+document.addEventListener('DOMContentLoaded', () => {
+    const theme = localStorage.getItem('lomiees_theme');
+    const themeIcon = document.querySelector('#themeToggle i');
+    if (theme === 'dark' && themeIcon) {
+        themeIcon.classList.remove('fa-moon');
+        themeIcon.classList.add('fa-sun');
+    }
+});
 
 // Create dots
 if (dotsContainer && totalSlides > 0) {
@@ -367,32 +396,153 @@ function createProductCard(product) {
 // ===== MISSING FUNCTIONS =====
 
 // Wishlist toggle
-function toggleWishlist(productId, btn) {
-    btn.classList.toggle('active');
-    const isWishlisted = btn.classList.contains('active');
-
-    if (isWishlisted) {
-        wishlistCount++;
-    } else {
-        wishlistCount = Math.max(0, wishlistCount - 1);
+async function toggleWishlist(productId, btn) {
+    const currentUser = JSON.parse(localStorage.getItem('lomiees_current_user'));
+    if (!currentUser) {
+        showToast('Please login to add to wishlist', 'error');
+        openAuthDrawer();
+        return;
     }
 
-    btn.style.background = isWishlisted ? '#ff0000' : 'white';
-    btn.style.color = isWishlisted ? 'white' : '#ff0000';
+    try {
+        const response = await fetch('/api/wishlist/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: currentUser.username,
+                product_id: productId
+            })
+        });
 
-    updateBadges();
-    showToast(isWishlisted ? 'Added to Wishlist ♥' : 'Removed from Wishlist', isWishlisted ? 'wishlist' : 'success');
+        const data = await response.json();
+        if (data.success) {
+            const isAdded = data.status === 'added';
+            btn.classList.toggle('active', isAdded);
+            btn.style.background = isAdded ? '#ff0000' : 'white';
+            btn.style.color = isAdded ? 'white' : '#ff0000';
+
+            wishlistCount = data.wishlist_count;
+            updateBadges();
+            showToast(data.message, isAdded ? 'wishlist' : 'success');
+        } else {
+            showToast(data.message || 'Error updating wishlist', 'error');
+        }
+    } catch (error) {
+        console.error('Wishlist error:', error);
+        showToast('An error occurred', 'error');
+    }
 }
 
 // Add to cart
-function addToCart(productId, btn) {
-    cartCount++;
+async function addToCart(productId, btn) {
+    const currentUser = JSON.parse(localStorage.getItem('lomiees_current_user'));
+    if (!currentUser) {
+        showToast('Please login to add to cart', 'error');
+        openAuthDrawer();
+        return;
+    }
+
     btn.style.transform = 'scale(0.85) rotate(10deg)';
     setTimeout(() => { btn.style.transform = ''; }, 300);
 
-    const product = products.find(p => p.id === productId);
-    updateBadges();
-    if (product) showToast(`"${product.name}" added to cart ✓`);
+    try {
+        const response = await fetch('/api/cart/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: currentUser.username,
+                product_id: productId
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            cartCount = data.cart_count;
+            updateBadges();
+
+            const product = products.find(p => p.id === productId);
+            if (product) showToast(`"${product.name}" added to cart ✓`);
+        } else {
+            showToast(data.message || 'Error adding to cart', 'error');
+        }
+    } catch (error) {
+        console.error('Cart error:', error);
+        showToast('An error occurred', 'error');
+    }
+}
+
+async function loadCounts() {
+    const currentUser = JSON.parse(localStorage.getItem('lomiees_current_user'));
+    if (!currentUser) {
+        wishlistCount = 0;
+        cartCount = 0;
+        updateBadges();
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/counts?username=${currentUser.username}`);
+        const data = await response.json();
+        if (data.success) {
+            wishlistCount = data.wishlist_count;
+            cartCount = data.cart_count;
+            updateBadges();
+        }
+    } catch (error) {
+        console.error('Error loading counts:', error);
+    }
+}
+
+async function removeFromCart(productId, callback) {
+    const currentUser = JSON.parse(localStorage.getItem('lomiees_current_user'));
+    if (!currentUser) return;
+
+    try {
+        const response = await fetch('/api/cart/remove', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: currentUser.username,
+                product_id: productId
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            cartCount = data.cart_count;
+            updateBadges();
+            showToast('Removed from cart');
+            if (callback) callback();
+        }
+    } catch (error) {
+        console.error('Remove from cart error:', error);
+    }
+}
+
+async function removeFromWishlist(productId, callback) {
+    const currentUser = JSON.parse(localStorage.getItem('lomiees_current_user'));
+    if (!currentUser) return;
+
+    try {
+        const response = await fetch('/api/wishlist/remove', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: currentUser.username,
+                product_id: productId
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            wishlistCount = data.wishlist_count;
+            updateBadges();
+            showToast('Removed from wishlist');
+            if (callback) callback();
+        }
+    } catch (error) {
+        console.error('Remove from wishlist error:', error);
+    }
 }
 
 // Show product details (placeholder)
@@ -672,6 +822,7 @@ function handleLogout() {
 document.addEventListener('DOMContentLoaded', () => {
     // Check if other initializations exist elsewhere, if not add them here
     updateUserUI();
+    loadCounts();
     applyCurrencyConversion();
 });
 

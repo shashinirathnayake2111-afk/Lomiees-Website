@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/lookly.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="lookly-container">
+    <div class="lookly-header">
+        <span class="beta-badge">BETA</span>
+        <h1>Lookly <span class="ai-text">AI Try-On</span></h1>
+        <p>Experience your favorite Lomiees styles instantly with our advanced virtual fitting room.</p>
+    </div>
+
+    <div class="lookly-workspace">
+        <!-- Validation and Error Alerts -->
+        <div id="alertBox" class="alert-box" style="display: none;">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="alertMessage"></span>
+            <button onclick="closeAlert()"><i class="fas fa-times"></i></button>
+        </div>
+
+        <div class="workspace-grid">
+            <!-- Step 1: Upload Personal Image -->
+            <div class="control-panel panel-left">
+                <div class="panel-header">
+                    <span class="step-num">1</span>
+                    <h3>Upload Your Photo</h3>
+                </div>
+
+                <div class="upload-zone" id="uploadZone">
+                    <input type="file" id="imageInput" accept="image/*" class="hidden-input">
+                    <div class="upload-content" id="uploadContent">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <h4>Drag & drop or <span class="browse-link">browse</span></h4>
+                        <p class="requirements">For best results: Stand straight, ensure good lighting, and wear
+                            form-fitting clothes.</p>
+                    </div>
+                    <div class="preview-container" id="previewContainer" style="display: none;">
+                        <img id="imagePreview" src="" alt="Your photo">
+                        <button class="remove-btn" onclick="clearUpload()" title="Remove photo">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Select Clothing -->
+            <div class="control-panel panel-right">
+                <div class="panel-header">
+                    <span class="step-num">2</span>
+                    <h3>Select Garment</h3>
+                </div>
+
+                <div class="clothing-grid">
+                    {% for item in clothing_options %}
+                    <div class="clothing-card" data-id="{{ item.id }}" onclick="selectClothing(this)">
+                        <div class="card-img-wrapper">
+                            <img src="{{ url_for('static', filename=item.image) }}" alt="{{ item.name }}">
+                        </div>
+                        <p class="card-title">{{ item.name }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <form id="tryOnForm" class="action-form">
+                    <input type="hidden" id="selectedClothingId" name="clothing_id">
+                    <button type="submit" class="generate-btn" id="generateBtn" disabled>
+                        <i class="fas fa-magic"></i> Generate Fitting
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div class="result-section" id="resultSection">
+            <div class="result-header">
+                <h3><i class="fas fa-sparkles"></i> Your Virtual Fitting</h3>
+            </div>
+
+            <div class="result-frame">
+                <!-- Placeholder State -->
+                <div class="placeholder-state" id="resultPlaceholder">
+                    <i class="fas fa-tshirt"></i>
+                    <p>Upload a photo and select a garment to see the magic happen.</p>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-state" id="loadingState" style="display: none;">
+                    <div class="ai-loader"></div>
+                    <p id="loadingMsg">Detecting body landmarks...</p>
+                </div>
+
+                <!-- Result State — image only, no buttons overlaid -->
+                <div class="final-result" id="finalResult" style="display: none;">
+                    <img id="resultImage" src="" alt="Virtual Fitting Result">
+                </div>
+            </div>
+
+            <!-- Buttons BELOW the frame -->
+            <div class="result-actions" id="resultActions" style="display: none;">
+                <button class="action-btn secondary" onclick="downloadImage()">
+                    <i class="fas fa-download"></i> Save Photo
+                </button>
+                <a href="{{ url_for('cart') }}" class="action-btn primary">
+                    <i class="fas fa-shopping-bag"></i> Add to Cart
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const uploadZone = document.getElementById('uploadZone');
+    const imageInput = document.getElementById('imageInput');
+    const uploadContent = document.getElementById('uploadContent');
+    const previewContainer = document.getElementById('previewContainer');
+    const imagePreview = document.getElementById('imagePreview');
+    const generateBtn = document.getElementById('generateBtn');
+    const selectedClothingInput = document.getElementById('selectedClothingId');
+    const tryOnForm = document.getElementById('tryOnForm');
+    const alertBox = document.getElementById('alertBox');
+    const alertMessage = document.getElementById('alertMessage');
+
+    // Upload Handlers
+    uploadZone.addEventListener('click', (e) => {
+        if (!e.target.closest('.remove-btn')) {
+            imageInput.click();
+        }
+    });
+
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('drag-active');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('drag-active');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('drag-active');
+        if (e.dataTransfer.files.length) {
+            imageInput.files = e.dataTransfer.files;
+            handleFileSelect();
+        }
+    });
+
+    imageInput.addEventListener('change', handleFileSelect);
+
+    function handleFileSelect() {
+        if (imageInput.files && imageInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.src = e.target.result;
+                uploadContent.style.display = 'none';
+                previewContainer.style.display = 'block';
+                checkFormReadiness();
+            }
+            reader.readAsDataURL(imageInput.files[0]);
+        }
+    }
+
+    function clearUpload() {
+        imageInput.value = '';
+        imagePreview.src = '';
+        uploadContent.style.display = 'block';
+        previewContainer.style.display = 'none';
+        checkFormReadiness();
+    }
+
+    // Clothing Selection Handler
+    function selectClothing(card) {
+        // Remove previous selection
+        document.querySelectorAll('.clothing-card').forEach(c => c.classList.remove('selected'));
+        // Add new selection
+        card.classList.add('selected');
+        selectedClothingInput.value = card.dataset.id;
+        checkFormReadiness();
+    }
+
+    // Enable/Disable Generate Button
+    function checkFormReadiness() {
+        const hasImage = imageInput.files && imageInput.files.length > 0;
+        const hasClothing = selectedClothingInput.value !== '';
+        generateBtn.disabled = !(hasImage && hasClothing);
+    }
+
+    // Alert Handlers
+    function showAlert(msg) {
+        alertMessage.textContent = msg;
+        alertBox.style.display = 'flex';
+        setTimeout(closeAlert, 5000);
+    }
+
+    function closeAlert() {
+        alertBox.style.display = 'none';
+    }
+
+    // Form Submission
+    tryOnForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (generateBtn.disabled) return;
+
+        // UI State Updates
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+        document.getElementById('resultPlaceholder').style.display = 'none';
+        document.getElementById('finalResult').style.display = 'none';
+        document.getElementById('loadingState').style.display = 'flex';
+
+        // Scroll to result view
+        document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+
+        const formData = new FormData();
+        formData.append('user_image', imageInput.files[0]);
+        formData.append('clothing_id', selectedClothingInput.value);
+
+        // Animate loading messages
+        const loadingMsgs = [
+            'Detecting body landmarks...',
+            'Measuring torso proportions...',
+            'Removing garment background...',
+            'Warping garment to your body...',
+            'Blending the final look...'
+        ];
+        let msgIdx = 0;
+        const msgInterval = setInterval(() => {
+            msgIdx = (msgIdx + 1) % loadingMsgs.length;
+            document.getElementById('loadingMsg').textContent = loadingMsgs[msgIdx];
+        }, 1800);
+
+        try {
+            const response = await fetch('/api/try-on', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                document.getElementById('resultImage').src = data.result_url + '?t=' + new Date().getTime();
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('finalResult').style.display = 'block';
+                document.getElementById('resultActions').style.display = 'flex';
+            } else {
+                showAlert(data.message || 'AI Processing failed. Please try a clearer photo.');
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('resultPlaceholder').style.display = 'flex';
+                document.getElementById('resultActions').style.display = 'none';
+            }
+        } catch (err) {
+            console.error(err);
+            showAlert('Network error occurred. Please try again.');
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('resultPlaceholder').style.display = 'flex';
+            document.getElementById('resultActions').style.display = 'none';
+        } finally {
+            clearInterval(msgInterval);
+            generateBtn.innerHTML = '<i class="fas fa-magic"></i> Generate Fitting';
+            generateBtn.disabled = false;
+        }
+    });
+
+    function downloadImage() {
+        const url = document.getElementById('resultImage').src;
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'lomiees-virtual-fitting.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+</script>
+{% endblock %}

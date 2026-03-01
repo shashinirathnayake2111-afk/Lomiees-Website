@@ -12,6 +12,52 @@
     --sizely-transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.dark-mode {
+    --sizely-background: #121212;
+    --sizely-surface: #1e1e1e;
+    --sizely-text: #e0e0e0;
+    --sizely-text-light: #aaa;
+    --sizely-border: #333;
+    --sizely-ring: rgba(158, 23, 158, 0.4);
+}
+
+.dark-mode .sizely-hero {
+    background-color: #121212 !important;
+}
+
+.dark-mode .select-wrapper select,
+.dark-mode .input-wrapper input {
+    background-color: #252525 !important;
+    border-color: #444 !important;
+    color: #eee !important;
+}
+
+.dark-mode .result-card.show {
+    background-color: #1e1e1e !important;
+    border-color: #333 !important;
+}
+
+.dark-mode .size-display {
+    background: #2a2a2a !important;
+    border-color: #444 !important;
+}
+
+.dark-mode .size-info {
+    background-color: #121212 !important;
+}
+
+.dark-mode .info-item i {
+    background: rgba(158, 23, 158, 0.15) !important;
+}
+
+.dark-mode .info-item h4 {
+    color: #e0e0e0 !important;
+}
+
+.dark-mode .info-item p {
+    color: #aaa !important;
+}
+
 .sizely-hero {
     padding: 60px 0 30px;
     text-align: center;

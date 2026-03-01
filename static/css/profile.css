@@ -16,34 +16,82 @@ body {
 }
 
 /* Dark Mode Global Overrides */
-body.dark-mode {
+.dark-mode {
     --bg-color: #121212;
     --card-bg: #1e1e1e;
     --text-color: #e0e0e0;
     --text-muted: #aaa;
     --border-color: #333;
-    --shadow-subtle: 0 10px 30px rgba(0, 0, 0, 0.2);
+    --shadow-subtle: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
-body.dark-mode .sidebar-nav a:hover:not(.active) {
+.dark-mode .sidebar-nav a:hover:not(.active) {
     background: #252525;
 }
 
-body.dark-mode .form-group input,
-body.dark-mode .form-group textarea {
+.dark-mode .form-group input,
+.dark-mode .form-group textarea {
     background: #252525;
     border-color: #444;
     color: #eee;
 }
 
-body.dark-mode .order-number,
-body.dark-mode .item-details-minimal h4,
-body.dark-mode .item-price-tag {
-    color: #fff;
+.dark-mode .form-group input[readonly],
+.dark-mode .form-group input:disabled {
+    background: #1a1a1a !important;
+    color: #888 !important;
+    border-color: #333 !important;
+    -webkit-text-fill-color: #888 !important;
+    /* Fix for Safari/iOS un-overridable text color on disabled inputs */
 }
 
-body.dark-mode .order-tracking-minimal {
-    background: #1a1a1a;
+.dark-mode .order-number,
+.dark-mode .item-details-minimal h4,
+.dark-mode .item-price-tag {
+    color: #fff !important;
+}
+
+.dark-mode .order-date,
+.dark-mode .item-meta-text,
+.dark-mode .tracking-track span {
+    color: #aaa !important;
+}
+
+.dark-mode .order-card {
+    background: #1e1e1e !important;
+    border-color: #333 !important;
+}
+
+.dark-mode .order-card:hover {
+    border-color: #555 !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+}
+
+.dark-mode .order-card-header {
+    border-bottom-color: #333 !important;
+}
+
+.dark-mode .item-img-container {
+    background: #2a2a2a !important;
+}
+
+.dark-mode .order-tracking-minimal {
+    background: #1a1a1a !important;
+}
+
+.dark-mode .tracking-track::before {
+    background: #333 !important;
+}
+
+.dark-mode .tracking-track .dot {
+    background: #1e1e1e !important;
+    border-color: #333 !important;
+}
+
+.dark-mode .tracking-track .step.completed .dot,
+.dark-mode .tracking-track .step.active .dot {
+    background: #9e179e !important;
+    border-color: #9e179e !important;
 }
 
 .profile-container {
@@ -208,7 +256,13 @@ body.dark-mode .order-tracking-minimal {
     transition: var(--transition);
 }
 
-.form-group input:focus,
+.form-group input[readonly] {
+    background: #f5f5f5;
+    cursor: not-allowed;
+    color: #666;
+}
+
+.form-group input:focus:not([readonly]),
 .form-group textarea:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 4px rgba(158, 23, 158, 0.1);

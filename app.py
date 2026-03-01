@@ -223,5 +223,71 @@ def sizely():
 
     return render_template('sizely.html')
 
+import os
+from werkzeug.utils import secure_filename
+from utils.ai_overlay import overlay_clothing
+
+# Configure upload folder
+UPLOAD_FOLDER = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+@app.route('/lookly')
+def lookly():
+    # Provide some sample clothing items for the virtual try-on
+    clothing_options = [
+        {'id': 'c1', 'name': 'Amani Aurelia Linen Wrap Dress', 'image': 'images/card 01.png'},
+        {'id': 'c2', 'name': 'Mens Casual Polo', 'image': 'images/card 02.png'},
+        {'id': 'c3', 'name': 'Classic White Shirt', 'image': 'images/card 03.png'}
+    ]
+    return render_template('lookly.html', clothing_options=clothing_options)
+
+@app.route('/api/try-on', methods=['POST'])
+def try_on_api():
+    if 'user_image' not in request.files:
+        return jsonify({'success': False, 'message': 'No image uploaded'}), 400
+        
+    file = request.files['user_image']
+    clothing_id = request.form.get('clothing_id')
+    
+    if file.filename == '':
+        return jsonify({'success': False, 'message': 'No selected file'}), 400
+        
+    if not clothing_id:
+        return jsonify({'success': False, 'message': 'No clothing item selected'}), 400
+
+    if file:
+        # Save user image
+        filename = secure_filename(file.filename)
+        user_img_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(user_img_path)
+        
+        # Determine clothing image path based on ID (simplified for demo)
+        clothing_mapping = {
+            'c1': 'static/images/card 01.png',
+            'c2': 'static/images/card 02.png',
+            'c3': 'static/images/card 03.png'
+        }
+        
+        clothing_img_path = clothing_mapping.get(clothing_id)
+        if not clothing_img_path or not os.path.exists(clothing_img_path):
+             return jsonify({'success': False, 'message': 'Invalid clothing item selected'}), 400
+
+        # Define output path
+        output_filename = f"result_{filename}"
+        output_path = os.path.join(app.config['UPLOAD_FOLDER'], output_filename)
+        
+        # Run AI Overlay
+        success, result_message = overlay_clothing(user_img_path, clothing_img_path, output_path)
+        
+        if success:
+            # Return relative path for frontend rendering
+            return jsonify({
+                'success': True, 
+                'result_url': f"/{UPLOAD_FOLDER}/{output_filename}"
+            })
+        else:
+            return jsonify({'success': False, 'message': result_message}), 400
+
 if __name__ == "__main__":
     app.run(debug=True)

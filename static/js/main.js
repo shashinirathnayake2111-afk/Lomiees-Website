@@ -120,12 +120,53 @@ if (wrapper && totalSlides > 0) {
 }
 
 const searchInput = document.querySelector('.search-container input');
+const searchResultsDropdown = document.createElement('div');
+searchResultsDropdown.id = 'searchResultsDropdown';
+searchResultsDropdown.className = 'search-results-dropdown';
+document.querySelector('.search-container').appendChild(searchResultsDropdown);
+
 if (searchInput) {
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            alert('Search functionality: ' + searchInput.value);
+    searchInput.addEventListener('input', async (e) => {
+        const query = e.target.value.trim();
+        if (query.length < 2) {
+            searchResultsDropdown.classList.remove('active');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+            const results = await response.json();
+
+            if (results.length > 0) {
+                renderSearchResults(results);
+                searchResultsDropdown.classList.add('active');
+            } else {
+                searchResultsDropdown.classList.remove('active');
+            }
+        } catch (error) {
+            console.error('Search error:', error);
         }
     });
+
+    // Close dropdown on click outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-container')) {
+            searchResultsDropdown.classList.remove('active');
+        }
+    });
+}
+
+function renderSearchResults(results) {
+    searchResultsDropdown.innerHTML = results.map(product => `
+        <a href="/product/${product.id}" class="search-result-item">
+            <img src="${product.image}" alt="${product.name}">
+            <div class="result-info">
+                <div class="result-name">${product.name}</div>
+                <div class="result-category">${product.category}</div>
+                <div class="result-price">Rs.${product.price.toLocaleString()}</div>
+            </div>
+        </a>
+    `).join('');
 }
 
 // Brand data with placeholder logos 
@@ -193,7 +234,37 @@ function startAutoScroll() {
     scroll();
 }
 
-// Initialized via DOMContentLoaded below
+// Product Sorting Logic
+function sortProducts(criteria) {
+    const grid = document.querySelector('.products-grid');
+    if (!grid) return;
+
+    const cards = Array.from(grid.querySelectorAll('.product-card'));
+
+    cards.sort((a, b) => {
+        // Extract price - handle Rs. prefix and commas
+        const getPrice = (el) => {
+            const priceText = el.querySelector('.current-price').textContent;
+            return parseFloat(priceText.replace(/[^\d.-]/g, ''));
+        };
+
+        if (criteria === 'price-low') {
+            return getPrice(a) - getPrice(b);
+        } else if (criteria === 'price-high') {
+            return getPrice(b) - getPrice(a);
+        } else if (criteria === 'newest') {
+            // Check for new badge
+            const isNewA = a.querySelector('.new-badge') !== null;
+            const isNewB = b.querySelector('.new-badge') !== null;
+            return isNewB - isNewA;
+        }
+        return 0; // Default
+    });
+
+    // Re-append sorted cards
+    grid.innerHTML = '';
+    cards.forEach(card => grid.appendChild(card));
+}
 
 // Initialize
 if (document.getElementById('brandsTrack')) {
@@ -373,10 +444,10 @@ function createProductCard(product) {
                     <i class="fas fa-heart"></i>
                 </button>
                 <div class="more-details-overlap">
-                    <button class="more-details-btn" onclick="showProductDetails(${product.id})">
-                        <i class="fas fa-shipping-fast"></i>
+                    <a href="/product/${product.id}" class="more-details-btn">
+                        <i class="fas fa-eye"></i>
                         More Details
-                    </button>
+                    </a>
                 </div>
             </div>
             <div class="product-details-section">

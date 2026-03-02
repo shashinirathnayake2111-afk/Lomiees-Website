@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/product_details.css') }}">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Handle Size Selection
+    document.querySelectorAll('.size-chip').forEach(button => {
+        button.addEventListener('click', function () {
+            // Remove active from all siblings
+            this.parentElement.querySelectorAll('.size-chip').forEach(btn => btn.classList.remove('active'));
+            // Add active to clicked
+            this.classList.add('active');
+        });
+    });
+
+    // Handle Color Selection
+    document.querySelectorAll('.color-swatch').forEach(button => {
+        button.addEventListener('click', function () {
+            // Remove active from all siblings
+            this.parentElement.querySelectorAll('.color-swatch').forEach(btn => btn.classList.remove('active'));
+            // Add active to clicked
+            this.classList.add('active');
+        });
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container product-details-page">
+    <div class="breadcrumb">
+        <a href="/">Home</a> <i class="fas fa-chevron-right"></i>
+        <a href="/category/{{ product.category }}">{{ product.category|capitalize }}</a> <i
+            class="fas fa-chevron-right"></i>
+        <span>{{ product.name }}</span>
+    </div>
+
+    <div class="details-grid">
+        <!-- Left: Image Gallery -->
+        <div class="product-gallery">
+            <div class="main-image-container">
+                <img src="{{ product.image }}" alt="{{ product.name }}" id="mainProductImage">
+                {% if product.is_sale %}
+                <span class="sale-badge">SALE</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right: Product Information -->
+        <div class="product-info-column">
+            <h1 class="product-title">{{ product.name }}</h1>
+
+            <div class="product-rating">
+                <div class="stars">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star-half-alt"></i>
+                </div>
+                <span class="review-count">(48 Reviews)</span>
+            </div>
+
+            <div class="product-price-container">
+                {% if product.old_price %}
+                <span class="original-price">Rs.{{ "{:,}".format(product.old_price) }}</span>
+                <span class="discounted-price">Rs.{{ "{:,}".format(product.price) }}</span>
+                <span class="save-amount">Save {{ "{:,}".format(product.old_price - product.price) }}</span>
+                {% else %}
+                <span class="main-price">Rs.{{ "{:,}".format(product.price) }}</span>
+                {% endif %}
+            </div>
+
+            <p class="product-description">
+                Experience ultimate comfort and style with our {{ product.name }}. Crafted from premium materials,
+                this piece is designed for those who value both elegance and durability. Perfect for any occasion.
+            </p>
+
+            <div class="product-options">
+                <div class="option-group">
+                    <label>Select Color</label>
+                    <div class="color-swatches">
+                        <button class="color-swatch active" style="background-color: #f7e7ce;"
+                            title="Champagne"></button>
+                        <button class="color-swatch" style="background-color: #000000;" title="Black"></button>
+                        <button class="color-swatch" style="background-color: #ffffff; border: 1px solid #ddd;"
+                            title="White"></button>
+                        <button class="color-swatch" style="background-color: #6a0e6a;" title="Purple"></button>
+                    </div>
+                </div>
+
+                {% if product.category not in ['accessories', 'jewellery'] %}
+                <div class="option-group">
+                    <label>Select Size</label>
+                    <div class="size-chips">
+                        {% if product.category == 'shoes' %}
+                        <button class="size-chip">6</button>
+                        <button class="size-chip">7</button>
+                        <button class="size-chip active">8</button>
+                        <button class="size-chip">9</button>
+                        <button class="size-chip">10</button>
+                        {% else %}
+                        <button class="size-chip">S</button>
+                        <button class="size-chip active">M</button>
+                        <button class="size-chip">L</button>
+                        <button class="size-chip">XL</button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-add-to-cart" onclick="addToCart('{{ product.id }}', this)">
+                    <i class="fas fa-shopping-cart"></i> Add to Cart
+                </button>
+                <button class="btn-wishlist-circle" onclick="toggleWishlist('{{ product.id }}', this)">
+                    <i class="fas fa-heart"></i>
+                </button>
+            </div>
+
+            <div class="product-meta">
+                <div class="meta-item">
+                    <i class="fas fa-truck"></i>
+                    <span>Free Shipping on orders over Rs.5,000</span>
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-undo"></i>
+                    <span>30-Day Easy Returns</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+    <section class="related-products-section">
+        <h2 class="section-title">YOU MAY ALSO LIKE</h2>
+        <div class="products-grid small-cards">
+            {% for rel in related_products %}
+            <div class="product-card">
+                <div class="image-container">
+                    <img src="{{ rel.image }}" alt="{{ rel.name }}" class="product-image">
+                    <div class="more-details-overlap">
+                        <a href="/product/{{ rel.id }}" class="more-details-btn">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                    </div>
+                </div>
+                <div class="product-details-section">
+                    <div class="product-name">{{ rel.name }}</div>
+                    <div class="product-footer">
+                        <div class="product-price">Rs.{{ "{:,}".format(rel.price) }}</div>
+                        <button class="circular-cart-btn" onclick="addToCart('{{ rel.id }}', this)">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

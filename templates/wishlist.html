@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    .wishlist-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px 80px;
+    }
+
+    .wishlist-header {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+
+    .wishlist-header h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, var(--primary-purple), #6a0e6a);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-family: 'Fredoka', sans-serif;
+    }
+
+    .wishlist-header p {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+    }
+
+    .wishlist-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 30px;
+    }
+
+    .wishlist-grid .product-card {
+        width: 280px;
+        margin: 0 auto;
+    }
+
+    .wishlist-grid .image-container {
+        padding-top: 0 !important;
+        height: 420px !important;
+    }
+
+    /* Make View Details always visible on Wishlist */
+    .wishlist-grid .more-details-overlap {
+        bottom: 15px !important;
+        opacity: 1 !important;
+    }
+
+    .wishlist-grid .product-image {
+        object-position: top center !important;
+    }
+
+    .empty-wishlist {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 100px 20px;
+    }
+
+    .empty-wishlist i {
+        font-size: 4rem;
+        color: #eee;
+        margin-bottom: 20px;
+    }
+
+    .shop-now-btn {
+        display: inline-block;
+        background: var(--primary-purple);
+        color: white;
+        padding: 12px 30px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 700;
+        margin-top: 20px;
+        transition: all 0.3s;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wishlist-container">
+    <div class="wishlist-header">
+        <h1>Your Wishlist</h1>
+        <p>Save items you love and they will appear here.</p>
+    </div>
+
+    <div class="wishlist-grid" id="wishlistGrid">
+        <div class="empty-wishlist">
+            <i class="fa-solid fa-heart"></i>
+            <p>Loading your wishlist...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadWishlist();
+    });
+
+    async function loadWishlist() {
+        const currentUser = JSON.parse(localStorage.getItem('lomiees_current_user'));
+        if (!currentUser) {
+            renderWishlist([]);
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/wishlist/items?username=${currentUser.username}`);
+            const data = await response.json();
+
+            if (data.success) {
+                renderWishlist(data.items);
+            } else {
+                renderWishlist([]);
+            }
+        } catch (error) {
+            console.error('Wishlist load error:', error);
+            renderWishlist([]);
+        }
+    }
+
+    function renderWishlist(items) {
+        const grid = document.getElementById('wishlistGrid');
+        if (!items || items.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-wishlist">
+                    <i class="fa-solid fa-heart"></i>
+                    <h3>Your wishlist is empty</h3>
+                    <p>Save items you love and they will appear here.</p>
+                    <a href="/" class="shop-now-btn">Explore Collections</a>
+                </div>
+            `;
+            return;
+        }
+
+        grid.innerHTML = items.map(item => `
+            <div class="product-card">
+                <div class="image-container">
+                    <img src="${item.image}" alt="${item.name}" class="product-image">
+                    <button class="wishlist-btn remove-btn" onclick="removeFromWishlistPage(${item.id})" title="Remove from Wishlist">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                    <div class="more-details-overlap">
+                        <a href="/product/${item.id}" class="more-details-btn">
+                            <i class="fa-solid fa-eye"></i> More Details
+                        </a>
+                    </div>
+                </div>
+                <div class="product-info">
+                    <div class="product-name">${item.name}</div>
+                    <div class="product-footer">
+                        <div class="product-price">Rs.${item.price.toLocaleString()}</div>
+                        <button class="circular-cart-btn" onclick="addToCart(${item.id}, this)">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function removeFromWishlistPage(productId) {
+        removeFromWishlist(productId, () => {
+            loadWishlist();
+        });
+    }
+</script>
+{% endblock %}

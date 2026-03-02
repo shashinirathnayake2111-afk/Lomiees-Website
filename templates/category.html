@@ -25,7 +25,7 @@
     }
 
     .category-header h1 {
-        font-size: 2rem;
+        font-size: 2.5rem;
         font-weight: 800;
         margin-bottom: 10px;
         background: linear-gradient(135deg, var(--primary-purple), var(--dark-purple));
@@ -33,6 +33,59 @@
         background-clip: text;
         -webkit-text-fill-color: transparent;
         font-family: 'Fredoka', sans-serif;
+    }
+
+    .category-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding: 15px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .results-count {
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+    .sort-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .sort-container label {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .sort-container select {
+        padding: 8px 15px;
+        border-radius: 8px;
+        border: 2px solid #eee;
+        background: white;
+        font-weight: 600;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .sort-container select:focus {
+        border-color: var(--primary-purple);
+        outline: none;
+    }
+
+    .dark-mode .category-controls {
+        background: #1e1e1e;
+    }
+
+    .dark-mode .sort-container select {
+        background: #2a2a2a;
+        border-color: #333;
+        color: #eee;
     }
 
     .category-header p {
@@ -153,6 +206,7 @@
     .more-details-btn {
         background: #6a0e6a;
         color: white;
+        text-decoration: none;
         border: none;
         width: 100%;
         padding: 12px;
@@ -310,6 +364,19 @@
         <p>Discover our exclusive {{ category_name.lower() }} collection</p>
     </div>
 
+    <div class="category-controls">
+        <div class="results-count">Showing {{ products|length }} products</div>
+        <div class="sort-container">
+            <label for="sortSelector">Sort by:</label>
+            <select id="sortSelector" onchange="sortProducts(this.value)">
+                <option value="default">Default</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="newest">Newest First</option>
+            </select>
+        </div>
+    </div>
+
     <div class="products-grid">
         {% if products %}
         {% for product in products %}
@@ -329,10 +396,10 @@
                 </button>
 
                 <div class="more-details-overlap">
-                    <button class="more-details-btn" onclick="showProductDetails('{{ product.id }}')">
-                        <i class="fas fa-shipping-fast"></i>
+                    <a href="/product/{{ product.id }}" class="more-details-btn">
+                        <i class="fas fa-eye"></i>
                         More Details
-                    </button>
+                    </a>
                 </div>
             </div>
 

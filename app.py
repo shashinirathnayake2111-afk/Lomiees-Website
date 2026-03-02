@@ -89,6 +89,18 @@ with app.app_context():
 def home():
     return render_template("index.html")
 
+@app.route('/cart')
+def cart_page():
+    return render_template('cart.html')
+
+@app.route('/wishlist')
+def wishlist_page():
+    return render_template('wishlist.html')
+
+@app.route('/checkout')
+def checkout_page():
+    return render_template('checkout.html')
+
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'GET':
@@ -453,6 +465,35 @@ def get_all_products():
     return ALL_PRODUCTS
 
 
+@app.route('/product/<int:product_id>')
+def product_details(product_id):
+    product = get_product_by_id(product_id)
+    if not product:
+        return "Product not found", 404
+    
+    # Related products (same category, excluding current)
+    related = [p for p in ALL_PRODUCTS if p['category'] == product['category'] and p['id'] != product_id][:4]
+    
+    return render_template('product_details.html', product=product, related_products=related)
+
+@app.route('/api/search')
+def search_api():
+    query = request.args.get('q', '').lower()
+    if not query:
+        return jsonify([])
+    
+    results = []
+    for p in ALL_PRODUCTS:
+        if query in p['name'].lower() or query in p['category'].lower():
+            results.append({
+                'id': p['id'],
+                'name': p['name'],
+                'price': p['price'],
+                'image': p['image'],
+                'category': p['category']
+            })
+    return jsonify(results[:8]) # Limit to 8 results for the dropdown
+
 @app.route('/category/<name>')
 def category_page(name):
     products = [p for p in get_all_products() if p['category'] == name.lower()]
@@ -517,7 +558,7 @@ def get_wishlist_items():
             items.append({
                 'id': wi.product_id,
                 'name': product['name'],
-                'currentPrice': f"Rs.{product['price']}",
+                'price': product['price'],
                 'image': product['image']
             })
     return jsonify({'success': True, 'items': items})

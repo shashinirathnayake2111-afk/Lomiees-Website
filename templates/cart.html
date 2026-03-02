@@ -158,10 +158,7 @@
     }
 
     function handleCheckout() {
-        showToast('Processing your order...', 'success');
-        setTimeout(() => {
-            alert('Checkout functionality would go here!');
-        }, 1000);
+        window.location.href = '/checkout';
     }
 </script>
 {% endblock %}

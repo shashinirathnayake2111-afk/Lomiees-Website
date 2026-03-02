@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/checkout.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="checkout-page-container">
+    <div class="checkout-header">
+        <h1>Secure Checkout</h1>
+        <div class="steps-indicator">
+            <div class="step active">1. Information</div>
+            <div class="step">2. Shipping</div>
+            <div class="step">3. Payment</div>
+        </div>
+    </div>
+
+    <div class="checkout-grid">
+        <!-- Billing/Shipping Form -->
+        <div class="checkout-form-section">
+            <form id="checkoutForm" onsubmit="processOrder(event)">
+                <div class="form-section">
+                    <h3>Contact Information</h3>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>Email Address</label>
+                            <input type="email" id="checkout-email" required placeholder="name@example.com">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Shipping Address</h3>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>First Name</label>
+                            <input type="text" id="checkout-fname" required placeholder="John">
+                        </div>
+                        <div class="input-group">
+                            <label>Last Name</label>
+                            <input type="text" id="checkout-lname" required placeholder="Doe">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Street Address</label>
+                        <input type="text" id="checkout-address" required placeholder="123 Fashion St">
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>City</label>
+                            <input type="text" id="checkout-city" required placeholder="Colombo">
+                        </div>
+                        <div class="input-group">
+                            <label>Postal Code</label>
+                            <input type="text" id="checkout-zip" required placeholder="10100">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="checkout-phone" required placeholder="+94 7X XXX XXXX">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>Payment Method</h3>
+                    <div class="payment-options">
+                        <label class="payment-option active">
+                            <input type="radio" name="payment" value="card" checked>
+                            <div class="option-content">
+                                <i class="fas fa-credit-card"></i>
+                                <span>Credit / Debit Card</span>
+                            </div>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="payment" value="cod">
+                            <div class="option-content">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <span>Cash on Delivery</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="place-order-btn">
+                    Place My Order <i class="fas fa-lock"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- Order Summary Stick -->
+        <div class="order-summary-section">
+            <div class="summary-card">
+                <h3>Order Summary</h3>
+                <div id="checkoutItemsList" class="checkout-items-mini">
+                    <!-- Items populated by JS -->
+                </div>
+
+                <div class="summary-divider"></div>
+
+                <div class="summary-stats">
+                    <div class="stat-row">
+                        <span>Subtotal</span>
+                        <span id="checkout-subtotal">Rs. 0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Shipping</span>
+                        <span class="free-badge">FREE</span>
+                    </div>
+                    <div class="stat-row total">
+                        <span>Total</span>
+                        <span id="checkout-total">Rs. 0</span>
+                    </div>
+                </div>
+
+                <div class="guarantee-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>100% Secure Checkout Guaranteed</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Overlay -->
+<div id="orderSuccessOverlay" class="order-success-overlay">
+    <div class="success-card">
+        <div class="success-icon">
+            <i class="fas fa-check"></i>
+        </div>
+        <h2>Order Placed Successfully!</h2>
+        <p>Thank you for shopping with Lomiees. Your order #LM-8293 is being processed.</p>
+        <button onclick="window.location.href='/'" class="continue-btn">Continue Shopping</button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadCheckoutSummary();
+        prefillUserDetails();
+    });
+
+    function prefillUserDetails() {
+        const user = JSON.parse(localStorage.getItem('lomiees_current_user'));
+        if (user) {
+            document.getElementById('checkout-email').value = user.email || '';
+            document.getElementById('checkout-fname').value = user.username.split(' ')[0] || '';
+            document.getElementById('checkout-phone').value = user.phone || '';
+            document.getElementById('checkout-address').value = user.address || '';
+        }
+    }
+
+    async function loadCheckoutSummary() {
+        const user = JSON.parse(localStorage.getItem('lomiees_current_user'));
+        if (!user) {
+            window.location.href = '/login';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/cart?username=${user.username}`);
+            const data = await response.json();
+
+            if (data.success && data.items.length > 0) {
+                renderSummary(data.items);
+            } else {
+                window.location.href = '/cart';
+            }
+        } catch (error) {
+            console.error('Checkout load error:', error);
+        }
+    }
+
+    function renderSummary(items) {
+        const list = document.getElementById('checkoutItemsList');
+        let subtotal = 0;
+
+        list.innerHTML = items.map(item => {
+            subtotal += (item.price * item.qty);
+            return `
+                <div class="checkout-mini-item">
+                    <div class="mini-img">
+                        <img src="${item.image}" alt="${item.name}">
+                        <span class="mini-qty">${item.qty}</span>
+                    </div>
+                    <div class="mini-info">
+                        <div class="mini-name">${item.name}</div>
+                        <div class="mini-price">Rs. ${item.price * item.qty}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        document.getElementById('checkout-subtotal').textContent = `Rs. ${subtotal}`;
+        document.getElementById('checkout-total').textContent = `Rs. ${subtotal}`;
+    }
+
+    function processOrder(e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('.place-order-btn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        btn.disabled = true;
+
+        setTimeout(() => {
+            document.getElementById('orderSuccessOverlay').classList.add('active');
+            // Normally you would clear the cart on backend here
+            showToast('Order placed successfully!', 'success');
+        }, 2000);
+    }
+</script>
+{% endblock %}

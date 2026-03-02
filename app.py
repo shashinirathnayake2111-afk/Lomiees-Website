@@ -404,32 +404,54 @@ def remove_from_wishlist():
     wishlist_count = WishlistItem.query.filter_by(user_id=user.id).count()
     return jsonify({'success': True, 'wishlist_count': wishlist_count})
 
-# Helper to get product details (since there's no Product model yet, using the list from frontend logic)
+# Central product catalog — shared by all category routes and cart / wishlist API
+ALL_PRODUCTS = [
+    # ── WOMEN ──
+    {'id': 1,  'name': 'Amani Aurelia Linen Wrap Dress',     'price': 3400,  'old_price': None,  'image': '/static/images/card 01.png',      'category': 'women',      'is_new': True,  'is_sale': False},
+    {'id': 3,  'name': 'Sleeveless Linen Jumpsuit',           'price': 6530,  'old_price': None,  'image': '/static/images/card 03.png',      'category': 'women',      'is_new': False, 'is_sale': False},
+    {'id': 5,  'name': 'Red Short Sleeve Party Wear',         'price': 8490,  'old_price': 11390, 'image': '/static/images/card 05.jpg',      'category': 'women',      'is_new': False, 'is_sale': True},
+    {'id': 6,  'name': 'Women Linen Office Pant',             'price': 2700,  'old_price': None,  'image': '/static/images/card 06.png',      'category': 'women',      'is_new': False, 'is_sale': False},
+    {'id': 8,  'name': 'Short Sleeve Black Frock',            'price': 2400,  'old_price': None,  'image': '/static/images/card 08.jpg',      'category': 'women',      'is_new': False, 'is_sale': False},
+    {'id': 9,  'name': 'Floral Midi Wrap Skirt',              'price': 3150,  'old_price': None,  'image': 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&q=80', 'category': 'women', 'is_new': True,  'is_sale': False},
+    {'id': 10, 'name': 'Elegant Off-Shoulder Evening Gown',   'price': 14500, 'old_price': 18900, 'image': 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80', 'category': 'women', 'is_new': False, 'is_sale': True},
+    {'id': 11, 'name': 'Cropped Linen Blazer',                'price': 5800,  'old_price': None,  'image': 'https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=600&q=80', 'category': 'women', 'is_new': True,  'is_sale': False},
+    {'id': 12, 'name': 'High-Waist Tailored Trousers',        'price': 4200,  'old_price': 5500,  'image': 'https://images.unsplash.com/photo-1509631179647-0177f2f1b5b5?w=600&q=80', 'category': 'women', 'is_new': False, 'is_sale': True},
+    {'id': 13, 'name': 'Satin Slip Midi Dress',               'price': 7800,  'old_price': None,  'image': 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=600&q=80', 'category': 'women', 'is_new': True,  'is_sale': False},
+    {'id': 14, 'name': 'Cotton Ruffle Puff-Sleeve Blouse',    'price': 2350,  'old_price': None,  'image': 'https://images.unsplash.com/photo-1464207687429-7505649dae38?w=600&q=80', 'category': 'women', 'is_new': False, 'is_sale': False},
+    # ── MEN ──
+    {'id': 2,  'name': 'Mens Casual Polo T-Shirt',            'price': 2190,  'old_price': 2890,  'image': '/static/images/card 02.png',      'category': 'men',        'is_new': False, 'is_sale': True},
+    {'id': 7,  'name': 'Long Sleeve Classic White Shirt',     'price': 2700,  'old_price': None,  'image': '/static/images/card 07.jpg',      'category': 'men',        'is_new': True,  'is_sale': False},
+    {'id': 15, 'name': 'Formal Slim-Fit Suit Shirt',          'price': 4500,  'old_price': None,  'image': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80', 'category': 'men', 'is_new': True,  'is_sale': False},
+    {'id': 16, 'name': 'Men Linen Relaxed Summer Shirt',      'price': 3200,  'old_price': 4100,  'image': 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&q=80', 'category': 'men', 'is_new': False, 'is_sale': True},
+    {'id': 17, 'name': 'Graphic Print Oversized Tee',         'price': 1950,  'old_price': None,  'image': 'https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=600&q=80', 'category': 'men', 'is_new': True,  'is_sale': False},
+    {'id': 18, 'name': 'Chino Stretch Jogger Pants',          'price': 3800,  'old_price': 5200,  'image': 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=600&q=80', 'category': 'men', 'is_new': False, 'is_sale': True},
+    # ── KIDS ──
+    {'id': 4,  'name': 'Sleeveless Floral Frock',             'price': 2750,  'old_price': None,  'image': '/static/images/card 04.png',      'category': 'kids',       'is_new': False, 'is_sale': False},
+    {'id': 19, 'name': 'Kids Rainbow Dungaree Set',            'price': 3100,  'old_price': None,  'image': 'https://images.unsplash.com/photo-1532452119098-a3650b3c46d3?w=600&q=80', 'category': 'kids', 'is_new': True,  'is_sale': False},
+    {'id': 20, 'name': 'Girls Puff-Sleeve Party Dress',       'price': 2600,  'old_price': 3400,  'image': 'https://images.unsplash.com/photo-1518831959646-742c3a14ebf0?w=600&q=80', 'category': 'kids', 'is_new': False, 'is_sale': True},
+    {'id': 21, 'name': 'Boys Printed Tee & Shorts Set',       'price': 1890,  'old_price': None,  'image': 'https://images.unsplash.com/photo-1567880905822-56f8e06fe630?w=600&q=80', 'category': 'kids', 'is_new': True,  'is_sale': False},
+    # ── JEWELLERY ──
+    {'id': 22, 'name': 'Gold-Plated Floral Necklace Set',     'price': 4800,  'old_price': None,  'image': 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=600&q=80', 'category': 'jewellery', 'is_new': True,  'is_sale': False},
+    {'id': 23, 'name': 'Oxidised Silver Jhumka Earrings',     'price': 1950,  'old_price': 2800,  'image': 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=600&q=80', 'category': 'jewellery', 'is_new': False, 'is_sale': True},
+    {'id': 24, 'name': 'Pearl Drop Statement Earrings',       'price': 2300,  'old_price': None,  'image': 'https://images.unsplash.com/photo-1576022162879-edf9d3b6f92c?w=600&q=80', 'category': 'jewellery', 'is_new': True,  'is_sale': False},
+    {'id': 25, 'name': 'Rose Gold Bangle Stack Set',          'price': 3750,  'old_price': 5000,  'image': 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600&q=80', 'category': 'jewellery', 'is_new': False, 'is_sale': True},
+    # ── SHOES ──
+    {'id': 26, 'name': 'Block Heel Leather Sandal',           'price': 5900,  'old_price': None,  'image': 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&q=80', 'category': 'shoes', 'is_new': True,  'is_sale': False},
+    {'id': 27, 'name': 'White Canvas Platform Sneaker',       'price': 4200,  'old_price': 5800,  'image': 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80', 'category': 'shoes', 'is_new': False, 'is_sale': True},
+    {'id': 28, 'name': 'Ankle Strap Stiletto Heel',           'price': 7500,  'old_price': None,  'image': 'https://images.unsplash.com/photo-1515347619252-60a4bf4fff4f?w=600&q=80', 'category': 'shoes', 'is_new': True,  'is_sale': False},
+    {'id': 29, 'name': 'Mens Suede Slip-On Loafer',           'price': 6800,  'old_price': 8900,  'image': 'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=600&q=80', 'category': 'shoes', 'is_new': False, 'is_sale': True},
+    # ── ACCESSORIES ──
+    {'id': 30, 'name': 'Quilted Chain Shoulder Bag',          'price': 8900,  'old_price': None,  'image': 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&q=80', 'category': 'accessories', 'is_new': True,  'is_sale': False},
+    {'id': 31, 'name': 'Woven Straw Tote Bag',                'price': 3400,  'old_price': 4500,  'image': 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80', 'category': 'accessories', 'is_new': False, 'is_sale': True},
+    {'id': 32, 'name': 'Classic Leather Crossbody Bag',       'price': 6500,  'old_price': None,  'image': 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80', 'category': 'accessories', 'is_new': True,  'is_sale': False},
+]
+
 def get_product_by_id(pid):
-    # This matches the 'products' array in main.js
-    products_data = [
-        {'id': 1, 'name': 'Amani Aurelia Linen Wrap Dress', 'price': 3400, 'image': '/static/images/card 01.png', 'category': 'women', 'is_new': True},
-        {'id': 2, 'name': 'Mens Casual Polo T-shirt', 'price': 2890, 'image': '/static/images/card 02.png', 'category': 'men', 'is_sale': True},
-        {'id': 3, 'name': 'Sleeveless Linen Jumpsuit', 'price': 6530, 'image': '/static/images/card 03.png', 'category': 'women'},
-        {'id': 4, 'name': 'Sleeveless Frock', 'price': 2750, 'image': '/static/images/card 04.png', 'category': 'kids'},
-        {'id': 5, 'name': 'Red Short Sleeve Party Wear', 'price': 11390, 'image': '/static/images/card 05.jpg', 'category': 'women', 'is_sale': True},
-        {'id': 6, 'name': 'Women Linen Office Pant', 'price': 2700, 'image': '/static/images/card 06.png', 'category': 'women'},
-        {'id': 7, 'name': 'Long Sleeve Mens White Shirt', 'price': 2700, 'image': '/static/images/card 07.jpg', 'category': 'men', 'is_new': True},
-        {'id': 8, 'name': 'Short Sleeve Black Frock', 'price': 2400, 'image': '/static/images/card 08.jpg', 'category': 'women'}
-    ]
-    return next((p for p in products_data if p['id'] == pid), None)
+    return next((p for p in ALL_PRODUCTS if p['id'] == pid), None)
 
 def get_all_products():
-    return [
-        {'id': 1, 'name': 'Amani Aurelia Linen Wrap Dress', 'price': 3400, 'image': '/static/images/card 01.png', 'category': 'women', 'is_new': True},
-        {'id': 2, 'name': 'Mens Casual Polo T-shirt', 'price': 2890, 'image': '/static/images/card 02.png', 'category': 'men', 'is_sale': True},
-        {'id': 3, 'name': 'Sleeveless Linen Jumpsuit', 'price': 6530, 'image': '/static/images/card 03.png', 'category': 'women'},
-        {'id': 4, 'name': 'Sleeveless Frock', 'price': 2750, 'image': '/static/images/card 04.png', 'category': 'kids'},
-        {'id': 5, 'name': 'Red Short Sleeve Party Wear', 'price': 11390, 'image': '/static/images/card 05.jpg', 'category': 'women', 'is_sale': True},
-        {'id': 6, 'name': 'Women Linen Office Pant', 'price': 2700, 'image': '/static/images/card 06.png', 'category': 'women'},
-        {'id': 7, 'name': 'Long Sleeve Mens White Shirt', 'price': 2700, 'image': '/static/images/card 07.jpg', 'category': 'men', 'is_new': True},
-        {'id': 8, 'name': 'Short Sleeve Black Frock', 'price': 2400, 'image': '/static/images/card 08.jpg', 'category': 'women'}
-    ]
+    return ALL_PRODUCTS
+
 
 @app.route('/category/<name>')
 def category_page(name):
@@ -448,16 +470,18 @@ def sale_page():
 
 @app.route('/accessories')
 def accessories_page():
-    # Placeholder for accessories as we don't have many in the mock list
-    return render_template('category.html', category_name='Accessories', products=[])
+    products = [p for p in get_all_products() if p['category'] == 'accessories']
+    return render_template('category.html', category_name='Accessories', products=products)
 
 @app.route('/jewellery')
 def jewellery_page():
-    return render_template('category.html', category_name='Jewellery', products=[])
+    products = [p for p in get_all_products() if p['category'] == 'jewellery']
+    return render_template('category.html', category_name='Jewellery', products=products)
 
 @app.route('/shoes')
 def shoes_page():
-    return render_template('category.html', category_name='Shoes', products=[])
+    products = [p for p in get_all_products() if p['category'] == 'shoes']
+    return render_template('category.html', category_name='Shoes', products=products)
 
 @app.route('/api/cart', methods=['GET'])
 def get_cart_items():

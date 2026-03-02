@@ -21,13 +21,13 @@
 
     .category-header {
         text-align: center;
-        margin-bottom: 60px;
+        margin-bottom: 50px;
     }
 
     .category-header h1 {
-        font-size: 3.5rem;
+        font-size: 2rem;
         font-weight: 800;
-        margin-bottom: 15px;
+        margin-bottom: 10px;
         background: linear-gradient(135deg, var(--primary-purple), var(--dark-purple));
         -webkit-background-clip: text;
         background-clip: text;
@@ -37,16 +37,222 @@
 
     .category-header p {
         color: var(--text-secondary);
-        font-size: 1.2rem;
+        font-size: 1.05rem;
         font-weight: 500;
     }
 
     .products-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 40px;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 32px;
     }
 
+    /* ── Product Card (matches home page exactly) ── */
+    .product-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    .image-container {
+        position: relative;
+        height: 380px;
+        overflow: hidden;
+        background-color: #6a0e6a;
+    }
+
+    .product-image {
+        width: 102%;
+        height: 102%;
+        margin-top: -1%;
+        margin-left: -1%;
+        object-fit: cover;
+        object-position: top center;
+        transition: transform 0.5s ease;
+        display: block;
+    }
+
+    .product-card:hover .product-image {
+        transform: scale(1.08);
+    }
+
+    /* Badges */
+    .sale-badge,
+    .new-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        z-index: 10;
+    }
+
+    .sale-badge {
+        background: #ff3366;
+        color: #fff;
+    }
+
+    .new-badge {
+        background: #6a0e6a;
+        color: #fff;
+    }
+
+    .sale-badge+.new-badge {
+        top: 42px;
+    }
+
+    /* Wishlist button (matches home page) */
+    .wishlist-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: white;
+        border: none;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        z-index: 12;
+        transition: all 0.2s ease;
+        color: #ff0000;
+    }
+
+    .wishlist-btn:hover,
+    .wishlist-btn.active {
+        transform: scale(1.1);
+        background: #ff0000;
+        color: white;
+    }
+
+    /* More Details — exactly like home page */
+    .more-details-overlap {
+        position: absolute;
+        bottom: 15px;
+        left: 10px;
+        right: 10px;
+        z-index: 15;
+    }
+
+    .more-details-btn {
+        background: #6a0e6a;
+        color: white;
+        border: none;
+        width: 100%;
+        padding: 12px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        white-space: nowrap;
+        border-radius: 10px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .more-details-btn:hover {
+        background: #500a50;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Product info */
+    .product-details-section {
+        background: white;
+        padding: 15px 20px 20px;
+        text-align: left;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-name {
+        font-weight: 600;
+        font-size: 1rem;
+        color: #333;
+        margin-bottom: 16px;
+        margin-top: 8px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.4;
+    }
+
+    .product-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+    }
+
+    .product-price {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .old-price {
+        font-size: 0.82rem;
+        color: #aaa;
+        text-decoration: line-through;
+    }
+
+    .current-price {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: #1a1a1a;
+    }
+
+    .current-price.sale {
+        color: #ff3366;
+    }
+
+    /* Cart button (matches home page) */
+    .circular-cart-btn {
+        background: #6a0e6a;
+        color: white;
+        border: none;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(106, 14, 106, 0.3);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .circular-cart-btn:hover {
+        background: #500a50;
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: 0 6px 15px rgba(106, 14, 106, 0.4);
+    }
+
+    /* Empty state */
     .empty-category {
         text-align: center;
         padding: 120px 20px;
@@ -61,17 +267,38 @@
     }
 
     .empty-category h3 {
-        font-size: 2rem;
+        font-size: 1.8rem;
         color: var(--text-primary);
         margin-bottom: 10px;
     }
 
+    /* Dark mode */
+    .dark-mode .product-card {
+        background: #1e1e1e;
+    }
+
+    .dark-mode .product-details-section {
+        background: #1e1e1e;
+    }
+
+    .dark-mode .product-name {
+        color: #e0e0e0;
+    }
+
+    .dark-mode .current-price {
+        color: #e0e0e0;
+    }
+
     .dark-mode .category-header p {
-        color: var(--text-dark-secondary);
+        color: #aaa;
+    }
+
+    .dark-mode .image-container {
+        background: #2a0a2a;
     }
 
     .dark-mode .empty-category h3 {
-        color: var(--text-dark-primary);
+        color: #e0e0e0;
     }
 </style>
 {% endblock %}
@@ -89,24 +316,40 @@
         <div class="product-card">
             <div class="image-container">
                 <img src="{{ product.image }}" alt="{{ product.name }}" class="product-image">
-                <button class="wishlist-btn" onclick="toggleWishlist('{{ product.id }}', this)">
-                    <i class="fa-solid fa-heart"></i>
+
+                {% if product.is_sale %}
+                <span class="sale-badge">SALE</span>
+                {% endif %}
+                {% if product.is_new %}
+                <span class="new-badge">NEW</span>
+                {% endif %}
+
+                <button class="wishlist-btn" onclick="toggleWishlist('{{ product.id }}', this)" title="Add to Wishlist">
+                    <i class="fas fa-heart"></i>
                 </button>
-                <div class="product-actions">
-                    <button class="btn-action btn-quick-view" onclick="showProductDetails('{{ product.id }}')">Quick
-                        View</button>
-                    <button class="btn-action btn-add-cart" onclick="addToCart('{{ product.id }}', this)">Add to
-                        Bag</button>
+
+                <div class="more-details-overlap">
+                    <button class="more-details-btn" onclick="showProductDetails('{{ product.id }}')">
+                        <i class="fas fa-shipping-fast"></i>
+                        More Details
+                    </button>
                 </div>
             </div>
-            <div class="product-info">
-                <h3 class="product-name">{{ product.name }}</h3>
+
+            <div class="product-details-section">
+                <div class="product-name">{{ product.name }}</div>
                 <div class="product-footer">
-                    <span class="product-price">Rs.{{ product.price }}</span>
-                    <div class="product-rating" style="color: #ffc107; font-size: 0.9rem;">
-                        <i class="fas fa-star"></i>
-                        <span style="color: var(--text-secondary); margin-left: 4px;">4.5</span>
+                    <div class="product-price">
+                        {% if product.old_price %}
+                        <span class="old-price">Rs.{{ "{:,}".format(product.old_price) }}</span>
+                        <span class="current-price sale">Rs.{{ "{:,}".format(product.price) }}</span>
+                        {% else %}
+                        <span class="current-price">Rs.{{ "{:,}".format(product.price) }}</span>
+                        {% endif %}
                     </div>
+                    <button class="circular-cart-btn" onclick="addToCart('{{ product.id }}', this)" title="Add to Cart">
+                        <i class="fas fa-shopping-cart"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -117,8 +360,7 @@
             <h3>No items found</h3>
             <p>We are currently updating this collection. Please check back soon!</p>
             <a href="/" class="btn-action btn-add-cart"
-                style="display: inline-block; margin-top: 30px; text-decoration: none; padding: 12px 30px;">Back to
-                Home</a>
+                style="display:inline-block;margin-top:30px;text-decoration:none;padding:12px 30px;">Back to Home</a>
         </div>
         {% endif %}
     </div>

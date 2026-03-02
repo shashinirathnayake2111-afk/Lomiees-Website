@@ -26,7 +26,7 @@ function toggleTheme() {
     const isDark = document.documentElement.classList.toggle('dark-mode');
     localStorage.setItem('lomiees_theme', isDark ? 'dark' : 'light');
 
-    // Update icon
+    // Update icon (only if it exists, like in settings page or if it's still in base)
     const themeIcon = document.querySelector('#themeToggle i');
     if (themeIcon) {
         if (isDark) {
@@ -683,9 +683,11 @@ function switchAuthMode(mode) {
 async function handleSignup(event) {
     event.preventDefault();
 
-    const username = document.getElementById('signup-username').value.trim();
-    const email = document.getElementById('signup-email').value.trim();
-    const password = document.getElementById('signup-password').value;
+    // Read from the actual submitted form (works for both drawer & dedicated page)
+    const form = event.target;
+    const username = (form.querySelector('[name="username"]') || form.querySelector('#signup-username')).value.trim();
+    const email = (form.querySelector('[name="email"]') || form.querySelector('#signup-email')).value.trim();
+    const password = (form.querySelector('[name="password"]') || form.querySelector('#signup-password')).value;
 
     // Basic Validation
     if (!username || !email || !password) {
@@ -715,7 +717,7 @@ async function handleSignup(event) {
 
         if (data.success) {
             showToast('Signup successful! Please login.', 'success');
-            document.getElementById('signupForm').reset();
+            form.reset();
 
             // If on dedicated signup page, scroll to top or redirect to login
             if (window.location.pathname === '/signup') {
@@ -737,8 +739,10 @@ async function handleSignup(event) {
 async function handleLogin(event) {
     event.preventDefault();
 
-    const username = document.getElementById('login-username').value.trim();
-    const password = document.getElementById('login-password').value;
+    // Read from the actual submitted form (works for both drawer & dedicated page)
+    const form = event.target;
+    const username = (form.querySelector('[name="username"]') || form.querySelector('#login-username')).value.trim();
+    const password = (form.querySelector('[name="password"]') || form.querySelector('#login-password')).value;
 
     try {
         const response = await fetch('/login', {
@@ -761,8 +765,7 @@ async function handleLogin(event) {
             updateUserUI();
 
             setTimeout(() => {
-                const loginForm = document.getElementById('loginForm');
-                if (loginForm) loginForm.reset();
+                form.reset();
 
                 // If on dedicated login page, redirect to home or profile
                 if (window.location.pathname === '/login') {

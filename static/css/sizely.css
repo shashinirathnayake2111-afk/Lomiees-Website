@@ -90,7 +90,7 @@
 }
 
 .premium-title {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 800;
     color: var(--sizely-primary-hover);
     margin-bottom: 24px;
@@ -428,7 +428,7 @@
     }
 
     .premium-title {
-        font-size: 3rem;
+        font-size: 2rem;
     }
 
     .info-grid {
@@ -444,7 +444,7 @@
 
 @media (max-width: 640px) {
     .premium-title {
-        font-size: 2.5rem;
+        font-size: 2rem;
     }
 
     .input-row {

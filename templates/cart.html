@@ -89,28 +89,33 @@
 
         document.getElementById('cartSummary').style.display = 'block';
 
-        list.innerHTML = items.map(item => `
-            <div class="cart-item">
-                <button class="item-remove-circle" onclick="removeItem(${item.id})">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-                <div class="item-image">
-                    <img src="${item.image}" alt="${item.name}">
-                </div>
-                <div class="item-info">
-                    <div class="item-name">${item.name}</div>
-                    <div class="item-brand">Lomiees Premium</div>
-                    <div class="item-controls">
-                        <div class="quantity-picker">
-                            <button class="qty-btn" onclick="updateQty(${item.id}, -1)">-</button>
-                            <span class="qty-val">${item.qty}</span>
-                            <button class="qty-btn" onclick="updateQty(${item.id}, 1)">+</button>
+        list.innerHTML = items.map(item => {
+            const pricePerItem = item.price;
+            const totalPrice = pricePerItem * item.qty;
+
+            return `
+                <div class="cart-item">
+                    <button class="item-remove-circle" onclick="removeItem(${item.id})">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                    <div class="item-image">
+                        <img src="${item.image}" alt="${item.name}">
+                    </div>
+                    <div class="item-info">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-brand">Lomiees Premium</div>
+                        <div class="item-controls">
+                            <div class="quantity-picker">
+                                <button class="qty-btn" onclick="updateQty(${item.id}, -1)">-</button>
+                                <span class="qty-val">${item.qty}</span>
+                                <button class="qty-btn" onclick="updateQty(${item.id}, 1)">+</button>
+                            </div>
                         </div>
                     </div>
+                    <div class="item-price" style="font-weight: 700;">Rs. ${totalPrice}</div>
                 </div>
-                <div class="item-price" style="font-weight: 700;">Rs. ${item.price * item.qty}</div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
 
         updateTotal(items);
     }

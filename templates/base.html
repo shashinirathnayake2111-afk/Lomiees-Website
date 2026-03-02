@@ -81,11 +81,7 @@
                         <span class="cart-badge" id="cart-badge"></span>
                     </div>
 
-                    <div class="icon-badge-wrapper">
-                        <button id="themeToggle" onclick="toggleTheme()" title="Toggle Dark Mode">
-                            <i class="fa-solid fa-moon"></i>
-                        </button>
-                    </div>
+
 
                     <div class="icon-badge-wrapper">
                         <button><a href="javascript:void(0)" class="profile-icon" id="profile-icon"
@@ -105,16 +101,16 @@
 
     <div class="banner">
         <div class="links">
-            <a href="/new-arrivals">New Arrivals</a>
-            <a href="/category/women">Women</a>
-            <a href="/category/men">Men</a>
-            <a href="/category/kids">Kids</a>
-            <a href="/accessories">Accessories</a>
-            <a href="/jewellery">Jewellery</a>
-            <a href="/shoes">Shoes</a>
-            <a href="/sale">Sale</a>
-            <a href="/sizely">Sizely</a>
-            <a href="/lookly">Lookly</a>
+            <a href="/new-arrivals" class="{{ 'active' if request.path == '/new-arrivals' else '' }}">New Arrivals</a>
+            <a href="/category/women" class="{{ 'active' if request.path == '/category/women' else '' }}">Women</a>
+            <a href="/category/men" class="{{ 'active' if request.path == '/category/men' else '' }}">Men</a>
+            <a href="/category/kids" class="{{ 'active' if request.path == '/category/kids' else '' }}">Kids</a>
+            <a href="/accessories" class="{{ 'active' if request.path == '/accessories' else '' }}">Accessories</a>
+            <a href="/jewellery" class="{{ 'active' if request.path == '/jewellery' else '' }}">Jewellery</a>
+            <a href="/shoes" class="{{ 'active' if request.path == '/shoes' else '' }}">Shoes</a>
+            <a href="/sale" class="{{ 'active' if request.path == '/sale' else '' }}">Sale</a>
+            <a href="/sizely" class="{{ 'active' if request.path == '/sizely' else '' }}">Sizely</a>
+            <a href="/lookly" class="{{ 'active' if request.path == '/lookly' else '' }}">Lookly</a>
         </div>
     </div>
 

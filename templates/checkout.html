@@ -382,17 +382,44 @@
         document.getElementById('checkout-total').textContent = `Rs. ${subtotal.toLocaleString()}`;
     }
 
-    function processOrder() {
+    async function processOrder() {
+        const user = JSON.parse(localStorage.getItem('lomiees_current_user'));
         const btn = document.querySelector('.place-order-btn');
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Finalizing Order...';
         btn.disabled = true;
 
-        // Cleanup draft and overlay behavior
-        setTimeout(() => {
-            localStorage.removeItem('lomiees_checkout_draft');
-            document.getElementById('orderSuccessOverlay').classList.add('active');
-            showToast('Order placed successfully!', 'success');
-        }, 2000);
+        const orderData = {
+            username: user.username,
+            full_name: `${document.getElementById('checkout-fname').value} ${document.getElementById('checkout-lname').value}`,
+            phone: document.getElementById('checkout-phone').value,
+            address: `${document.getElementById('checkout-address').value}, ${document.getElementById('checkout-city').value}, ${document.getElementById('checkout-zip').value}`,
+            payment_method: selectedPayment
+        };
+
+        try {
+            const response = await fetch('/api/orders/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                // Cleanup draft and overlay behavior
+                localStorage.removeItem('lomiees_checkout_draft');
+                document.getElementById('orderSuccessOverlay').classList.add('active');
+                showToast('Order placed successfully!', 'success');
+            } else {
+                showToast(data.message || 'Error processing order', 'error');
+                btn.innerHTML = 'Confirm & Place Order <i class="fas fa-shield-check"></i>';
+                btn.disabled = false;
+            }
+        } catch (error) {
+            console.error('Order processing error:', error);
+            showToast('Network error occurred. Please try again.', 'error');
+            btn.innerHTML = 'Confirm & Place Order <i class="fas fa-shield-check"></i>';
+            btn.disabled = false;
+        }
     }
 
     document.addEventListener('DOMContentLoaded', () => {

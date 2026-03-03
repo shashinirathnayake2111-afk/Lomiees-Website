@@ -212,7 +212,7 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
         const currentUser = JSON.parse(localStorage.getItem('lomiees_current_user'));
         if (!currentUser) {
             window.location.href = '/';
@@ -223,7 +223,90 @@
         document.getElementById('profilePageAvatar').textContent = firstLetter;
         document.getElementById('profilePageUsername').textContent = currentUser.username;
         document.getElementById('profilePageEmail').textContent = currentUser.email;
+
+        // Fetch Real Orders
+        try {
+            const response = await fetch(`/api/orders/get?username=${currentUser.username}`);
+            const data = await response.json();
+            if (data.success) {
+                renderOrders(data.orders);
+            }
+        } catch (error) {
+            console.error('Fetch orders error:', error);
+        }
     });
+
+    function renderOrders(orders) {
+        const list = document.querySelector('.orders-list');
+        if (!orders || orders.length === 0) {
+            list.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-shopping-bag"></i>
+                    <h3>No orders yet</h3>
+                    <p>Start shopping and place your first order!</p>
+                    <a href="/" class="shop-now-btn">Shop Now</a>
+                </div>
+            `;
+            return;
+        }
+
+        list.innerHTML = orders.map(order => `
+            <div class="order-card" data-status="${order.status.toLowerCase()}">
+                <div class="order-card-header">
+                    <div class="order-info">
+                        <span class="order-number">Order #${order.order_number}</span>
+                        <span class="order-date">${order.date}</span>
+                    </div>
+                    <span class="status-badge ${order.status.toLowerCase()}">${order.status}</span>
+                </div>
+                <div class="order-card-body">
+                    ${order.items.map(item => `
+                        <div class="order-item-minimal">
+                            <div class="item-img-container">
+                                <img src="${item.image}" alt="${item.name}">
+                            </div>
+                            <div class="item-details-minimal">
+                                <h4>${item.name}</h4>
+                                <p class="item-meta-text">Qty: ${item.quantity} · Size: ${item.size}</p>
+                                <div class="item-color-preview">
+                                    <span class="color-dot-wrapper"><span class="color-dot" style="background-color: ${item.color === 'Standard' ? '#f5f5f5' : item.color};"></span></span>
+                                </div>
+                                <span class="item-price-tag">Rs. ${(item.price * item.quantity).toLocaleString()}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                    
+                    <div class="order-tracking-minimal">
+                        <div class="tracking-track">
+                            <div class="step completed">
+                                <div class="dot"></div>
+                                <span>Ordered</span>
+                            </div>
+                            <div class="step ${['processing', 'ongoing', 'completed'].includes(order.status.toLowerCase()) ? 'active' : ''}">
+                                <div class="dot"></div>
+                                <span>Processing</span>
+                            </div>
+                            <div class="step ${['ongoing', 'completed'].includes(order.status.toLowerCase()) ? 'active' : ''}">
+                                <div class="dot"></div>
+                                <span>Shipped</span>
+                            </div>
+                            <div class="step ${order.status.toLowerCase() === 'completed' ? 'active' : ''}">
+                                <div class="dot"></div>
+                                <span>Delivered</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="order-card-footer-minimal" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f8f8f8; padding-top: 15px;">
+                    <div class="order-total-info">
+                        <span style="font-size: 0.85rem; color: #888;">Order Total:</span>
+                        <span style="font-weight: 800; color: var(--primary-purple); font-size: 1.1rem; margin-left: 5px;">Rs. ${order.total.toLocaleString()}</span>
+                    </div>
+                    <button class="action-btn-secondary" onclick="window.location.href='/'">Buy Again</button>
+                </div>
+            </div>
+        `).join('');
+    }
 
     function filterOrders(status) {
         // Update active button

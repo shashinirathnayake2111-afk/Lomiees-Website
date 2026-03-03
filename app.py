@@ -30,6 +30,35 @@ class WishlistItem(db.Model):
     product_id = db.Column(db.Integer, nullable=False)
     user = db.relationship('User', backref=db.backref('wishlist_items', lazy=True))
 
+class Order(db.Model):
+    __tablename__ = 'orders'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    order_number = db.Column(db.String(20), unique=True, nullable=False)
+    date = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    total_amount = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(20), default='Processing') # Processing, Ongoing, Completed
+    # Delivery info
+    full_name = db.Column(db.String(100), nullable=True)
+    phone = db.Column(db.String(20), nullable=True)
+    address = db.Column(db.Text, nullable=True)
+    payment_method = db.Column(db.String(50), nullable=True)
+    
+    user = db.relationship('User', backref=db.backref('orders', lazy=True))
+    items = db.relationship('OrderItem', backref='order', lazy=True, cascade="all, delete-orphan")
+
+class OrderItem(db.Model):
+    __tablename__ = 'order_items'
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
+    product_id = db.Column(db.Integer, nullable=False)
+    product_name = db.Column(db.String(100), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    size = db.Column(db.String(20), nullable=True)
+    color = db.Column(db.String(100), nullable=True)
+    image = db.Column(db.String(255), nullable=True)
+
 class SizeChart(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     gender = db.Column(db.String(10), nullable=False)  # 'Men', 'Women', 'Kids'
@@ -366,7 +395,7 @@ def add_to_cart():
 def toggle_wishlist_api():
     data = request.get_json()
     username = data.get('username')
-    product_id = data.get('product_id')
+    product_id = int(data.get('product_id'))
     
     user = User.query.filter_by(username=username).first()
     if not user:
@@ -573,6 +602,92 @@ def get_cart_items():
                 'image': product['image']
             })
     return jsonify({'success': True, 'items': items})
+
+@app.route('/api/orders/create', methods=['POST'])
+def create_order():
+    data = request.get_json()
+    username = data.get('username')
+    
+    user = User.query.filter_by(username=username).first()
+    if not user or not user.cart_items:
+        return jsonify({'success': False, 'message': 'User not found or cart is empty'}), 400
+    
+    # Calculate Total & Prepare Items
+    total = 0
+    order_items_data = []
+    
+    for ci in user.cart_items:
+        product = get_product_by_id(ci.product_id)
+        if product:
+            item_total = product['price'] * ci.quantity
+            total += item_total
+            order_items_data.append({
+                'product_id': ci.product_id,
+                'product_name': product['name'],
+                'price': product['price'],
+                'quantity': ci.quantity,
+                'size': ci.size,
+                'color': ci.color,
+                'image': product['image']
+            })
+    
+    # Create Order Record
+    import random
+    order_num = f"LM-{random.randint(10000, 99999)}"
+    
+    new_order = Order(
+        user_id=user.id,
+        order_number=order_num,
+        total_amount=total,
+        full_name=data.get('full_name'),
+        phone=data.get('phone'),
+        address=data.get('address'),
+        payment_method=data.get('payment_method')
+    )
+    db.session.add(new_order)
+    db.session.flush() # Get order ID
+    
+    # Add items to order
+    for item_data in order_items_data:
+        oi = OrderItem(order_id=new_order.id, **item_data)
+        db.session.add(oi)
+    
+    # Clear Cart
+    CartItem.query.filter_by(user_id=user.id).delete()
+    
+    db.session.commit()
+    return jsonify({'success': True, 'order_number': order_num})
+
+@app.route('/api/orders/get', methods=['GET'])
+def get_orders():
+    username = request.args.get('username')
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({'success': False, 'orders': []})
+    
+    orders_data = []
+    for o in sorted(user.orders, key=lambda x: x.date, reverse=True):
+        items = []
+        for i in o.items:
+            items.append({
+                'product_id': i.product_id,
+                'name': i.product_name,
+                'price': i.price,
+                'quantity': i.quantity,
+                'size': i.size,
+                'color': i.color,
+                'image': i.image
+            })
+        
+        orders_data.append({
+            'order_number': o.order_number,
+            'date': o.date.strftime('%b %d, %Y'),
+            'total': o.total_amount,
+            'status': o.status,
+            'items': items
+        })
+        
+    return jsonify({'success': True, 'orders': orders_data})
 
 @app.route('/api/wishlist/ids', methods=['GET'])
 def get_wishlist_ids():

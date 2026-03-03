@@ -264,7 +264,48 @@ function sortProducts(criteria) {
     // Re-append sorted cards
     grid.innerHTML = '';
     cards.forEach(card => grid.appendChild(card));
+    syncWishlistState(); // Sync wishlist state after re-rendering product cards
 }
+
+async function syncWishlistState(wishlistIds = null) {
+    const currentUser = JSON.parse(localStorage.getItem('lomiees_current_user'));
+    if (!currentUser) {
+        document.querySelectorAll('.wishlist-btn').forEach(btn => btn.classList.remove('active'));
+        return;
+    }
+
+    let ids = wishlistIds;
+    if (!ids) {
+        try {
+            const response = await fetch(`/api/wishlist/ids?username=${currentUser.username}`);
+            const data = await response.json();
+            if (data.success) ids = data.ids;
+        } catch (e) { console.error('Wishlist sync error:', e); return; }
+    }
+
+    if (!ids) return;
+
+    // Standardize IDs as strings for comparison
+    const idSet = new Set(ids.map(id => id.toString()));
+
+    document.querySelectorAll('.wishlist-btn').forEach(btn => {
+        // Try to find product ID from onclick or data attribute
+        const onclickAttr = btn.getAttribute('onclick') || '';
+        const idMatch = onclickAttr.match(/toggleWishlist\(["']?(\d+)["']?/);
+        const productId = idMatch ? idMatch[1] : btn.dataset.productId;
+
+        if (productId && idSet.has(productId.toString())) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
+// Automatically sync on load
+window.addEventListener('load', () => {
+    setTimeout(syncWishlistState, 500); // Small delay to ensure dynamic cards are rendered
+});
 
 // Initialize
 if (document.getElementById('brandsTrack')) {
@@ -488,13 +529,15 @@ async function toggleWishlist(productId, btn) {
         const data = await response.json();
         if (data.success) {
             const isAdded = data.status === 'added';
-            btn.classList.toggle('active', isAdded);
-            btn.style.background = isAdded ? '#ff0000' : 'white';
-            btn.style.color = isAdded ? 'white' : '#ff0000';
+            // The individual button's state is handled by syncWishlistState
+            // btn.classList.toggle('active', isAdded);
+            // btn.style.background = isAdded ? '#ff0000' : 'white';
+            // btn.style.color = isAdded ? 'white' : '#ff0000';
 
             wishlistCount = data.wishlist_count;
             updateBadges();
             showToast(data.message, isAdded ? 'wishlist' : 'success');
+            syncWishlistState(); // Sync all wishlist buttons on the page
         } else {
             showToast(data.message || 'Error updating wishlist', 'error');
         }
@@ -513,11 +556,18 @@ async function addToCart(productId, btn) {
         return;
     }
 
-    // Attempt to get selected size if on product details page
+    // Attempt to get selected size and color if on product details page
     let selectedSize = null;
+    let selectedColor = null;
+
     const sizeBtn = document.querySelector('.size-chip.active');
     if (sizeBtn) {
         selectedSize = sizeBtn.innerText.trim();
+    }
+
+    const colorBtn = document.querySelector('.color-swatch.active');
+    if (colorBtn) {
+        selectedColor = colorBtn.getAttribute('title') || colorBtn.style.backgroundColor;
     }
 
     btn.style.transform = 'scale(0.85) rotate(10deg)';
@@ -530,7 +580,8 @@ async function addToCart(productId, btn) {
             body: JSON.stringify({
                 username: currentUser.username,
                 product_id: productId,
-                size: selectedSize
+                size: selectedSize,
+                color: selectedColor
             })
         });
 
@@ -567,6 +618,13 @@ async function loadCounts() {
             wishlistCount = data.wishlist_count;
             cartCount = data.cart_count;
             updateBadges();
+
+            // Also fetch and sync wishlist IDs
+            const wishlistIdsResponse = await fetch(`/api/wishlist/ids?username=${currentUser.username}`);
+            const idsData = await wishlistIdsResponse.json();
+            if (idsData.success) {
+                syncWishlistState(idsData.ids);
+            }
         }
     } catch (error) {
         console.error('Error loading counts:', error);
@@ -619,6 +677,7 @@ async function removeFromWishlist(productId, callback) {
             updateBadges();
             showToast('Removed from wishlist');
             if (callback) callback();
+            syncWishlistState(); // Sync all wishlist buttons on the page
         }
     } catch (error) {
         console.error('Remove from wishlist error:', error);

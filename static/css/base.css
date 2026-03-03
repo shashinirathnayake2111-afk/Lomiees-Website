@@ -226,21 +226,19 @@ body {
     /* Small start margin as requested */
 }
 
-/* Premium "View Details" Hover Overlay */
+/* Premium "View Details" Overlay - Persistently Visible */
 .more-details-overlap {
     position: absolute;
-    bottom: -15px;
-    /* Hidden initially */
+    bottom: 15px;
     left: 10px;
     right: 10px;
-    opacity: 0;
+    opacity: 1;
     z-index: 10;
     transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 .product-card:hover .more-details-overlap {
-    bottom: 15px;
-    opacity: 1;
+    transform: translateY(-2px);
 }
 
 .more-details-btn {
@@ -268,11 +266,24 @@ body {
     box-shadow: 0 15px 30px rgba(106, 14, 106, 0.3);
 }
 
-.more-details-btn i {
-    font-size: 0.9rem;
+/* Wishlist Button States */
+.wishlist-btn:hover,
+.wishlist-btn.active {
+    background: #ff0000 !important;
+    color: white !important;
+    transform: scale(1.1);
 }
 
-/* Premium Circular Cart Button - Matching User's Purple Design */
+.wishlist-btn.red-heart {
+    color: #ff0000;
+}
+
+.wishlist-btn.red-heart:hover,
+.wishlist-btn.red-heart.active {
+    color: white;
+}
+
+/* Premium Circular Cart Button */
 .circular-cart-btn {
     background: #6a0e6a !important;
     color: white !important;
@@ -292,14 +303,6 @@ body {
     background: #500a50 !important;
     transform: scale(1.1) rotate(5deg);
     box-shadow: 0 6px 15px rgba(106, 14, 106, 0.4);
-}
-
-.circular-cart-btn:active {
-    transform: scale(0.9);
-}
-
-.circular-cart-btn i {
-    font-size: 1.1rem;
 }
 
 /* Wishlist Remove Button specifically for wishlist page */
@@ -328,7 +331,7 @@ body {
     transform: scale(1.1) rotate(-10deg);
 }
 
-/* Dark Mode Overrides for Products */
+/* Dark Mode Overrides */
 .dark-mode .product-card {
     background: var(--card-dark);
     border-color: #333;

@@ -116,14 +116,44 @@
     font-family: 'Outfit', sans-serif;
 }
 
+.item-variants {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0;
+}
+
 .item-size-badge {
-    background: #f3e5f3;
-    color: var(--cart-primary);
-    padding: 4px 12px;
+    padding: 6px 14px;
     border-radius: 100px;
     font-size: 0.85rem;
-    font-weight: 700;
+    font-weight: 800;
     width: fit-content;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #f3e5f3;
+    color: var(--cart-primary);
+}
+
+.item-color-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.color-swatch-circle {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    cursor: default;
+    transition: transform 0.3s ease;
+}
+
+.color-swatch-circle:hover {
+    transform: scale(1.15);
 }
 
 .item-brand {

@@ -20,7 +20,8 @@ class CartItem(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     product_id = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Integer, default=1)
-    size = db.Column(db.String(20), nullable=True) # Added size support
+    size = db.Column(db.String(20), nullable=True)
+    color = db.Column(db.String(100), nullable=True) # Added color support
     user = db.relationship('User', backref=db.backref('cart_items', lazy=True))
 
 class WishlistItem(db.Model):
@@ -319,17 +320,42 @@ def try_on_api():
 def add_to_cart():
     data = request.get_json()
     username = data.get('username')
-    product_id = data.get('product_id')
-    size = data.get('size') # Optional size
+    product_id = int(data.get('product_id'))
     
     user = User.query.filter_by(username=username).first()
     if not user:
         return jsonify({'success': False, 'message': 'User not found. Please login.'}), 401
+
+    product = get_product_by_id(product_id)
+    if not product:
+        return jsonify({'success': False, 'message': 'Product not found.'}), 404
+
+    # Intelligent Defaults based on Category
+    category = product.get('category', '').lower()
+    is_accessory = any(x in category for x in ['jewel', 'access', 'shoe', 'bag'])
     
-    # Unique combination of (user, product, size)
+    # Standardize size/color with category-aware defaults
+    size = data.get('size')
+    if not size or size == 'null':
+        # Don't use 'One Size' for clothing
+        size = 'One Size' if is_accessory else 'M'
+        
+    color = data.get('color') or 'Standard'
+    if not color or color == 'null':
+        color = 'Standard'
+    
+    # Group by Size (as requested: same size, different card only if size changes)
     item = CartItem.query.filter_by(user_id=user.id, product_id=product_id, size=size).first()
-    if not item:
-        new_item = CartItem(user_id=user.id, product_id=product_id, size=size)
+    if item:
+        # If size matches, check if color is already in the list
+        existing_colors = item.color.split(',') if item.color else []
+        if color and color not in existing_colors:
+            existing_colors.append(color)
+            item.color = ",".join(existing_colors)
+            item.quantity += 1 # Only increment if it's a NEW color/item of same size
+    else:
+        # New size means new card
+        new_item = CartItem(user_id=user.id, product_id=product_id, size=size, color=color)
         db.session.add(new_item)
     
     db.session.commit()
@@ -536,15 +562,27 @@ def get_cart_items():
         product = get_product_by_id(ci.product_id)
         if product:
             items.append({
-                'id': ci.product_id, # This is the product_id, not cart_item_id
-                'cart_item_id': ci.id, # Added unique ID for quantity/remove ops
+                'id': ci.product_id,
+                'cart_item_id': ci.id,
                 'name': product['name'],
                 'price': product['price'],
                 'qty': ci.quantity,
-                'size': ci.size,
+                'size': ci.size or 'One Size',
+                'color': ci.color or 'Standard',
+                'category': product.get('category', '').lower(), # Added category for UI logic
                 'image': product['image']
             })
     return jsonify({'success': True, 'items': items})
+
+@app.route('/api/wishlist/ids', methods=['GET'])
+def get_wishlist_ids():
+    username = request.args.get('username')
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({'success': False, 'ids': []})
+    
+    ids = [wi.product_id for wi in user.wishlist_items]
+    return jsonify({'success': True, 'ids': ids})
 
 @app.route('/api/wishlist/items', methods=['GET'])
 def get_wishlist_items():

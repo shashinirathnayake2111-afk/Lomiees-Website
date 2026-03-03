@@ -103,7 +103,18 @@
                     <div class="item-info">
                         <div class="item-details">
                             <div class="item-name">${item.name}</div>
-                            ${item.size ? `<div class="item-size-badge">Size: ${item.size}</div>` : ''}
+                            <div class="item-variants">
+                                ${(!item.category || (!item.category.includes('jewel') && !item.category.includes('access'))) ?
+                    `<span class="item-size-badge">${item.size}</span>` : ''}
+                                <div class="item-color-group">
+                                    ${(item.color || 'Standard').split(',').map(c => {
+                        const color = c.trim();
+                        if (color === 'Standard' && item.color === 'Standard') return ''; // Don't show circle for purely 'Standard' items if they are the only color
+                        const hex = getColorHex(color);
+                        return `<span class="color-swatch-circle" style="background-color: ${hex}" title="${color}"></span>`;
+                    }).join('')}
+                                </div>
+                            </div>
                             <div class="item-brand">Lomiees Premium Collection</div>
                         </div>
                         <div class="item-bottom-row">
@@ -177,6 +188,19 @@
 
     function handleCheckout() {
         window.location.href = '/checkout';
+    }
+
+    function getColorHex(colorName) {
+        const colors = {
+            'Champagne': '#f7e7ce',
+            'Black': '#000000',
+            'White': '#ffffff',
+            'Purple': '#6a0e6a',
+            'Red': '#ff4757',
+            'Blue': '#3742fa',
+            'Standard': '#ddd'
+        };
+        return colors[colorName] || colorName;
     }
 </script>
 {% endblock %}

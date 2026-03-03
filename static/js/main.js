@@ -513,6 +513,13 @@ async function addToCart(productId, btn) {
         return;
     }
 
+    // Attempt to get selected size if on product details page
+    let selectedSize = null;
+    const sizeBtn = document.querySelector('.size-chip.active');
+    if (sizeBtn) {
+        selectedSize = sizeBtn.innerText.trim();
+    }
+
     btn.style.transform = 'scale(0.85) rotate(10deg)';
     setTimeout(() => { btn.style.transform = ''; }, 300);
 
@@ -522,7 +529,8 @@ async function addToCart(productId, btn) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 username: currentUser.username,
-                product_id: productId
+                product_id: productId,
+                size: selectedSize
             })
         });
 
@@ -531,8 +539,9 @@ async function addToCart(productId, btn) {
             cartCount = data.cart_count;
             updateBadges();
 
-            const product = products.find(p => p.id === productId);
-            if (product) showToast(`"${product.name}" added to cart ✓`);
+            const product = products.find(p => p.id === parseInt(productId));
+            const msg = selectedSize ? `"${product?.name || 'Item'}" (${selectedSize}) added to cart ✓` : `"${product?.name || 'Item'}" added to cart ✓`;
+            showToast(msg);
         } else {
             showToast(data.message || 'Error adding to cart', 'error');
         }

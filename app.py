@@ -20,6 +20,7 @@ class CartItem(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     product_id = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Integer, default=1)
+    size = db.Column(db.String(20), nullable=True) # Added size support
     user = db.relationship('User', backref=db.backref('cart_items', lazy=True))
 
 class WishlistItem(db.Model):
@@ -319,17 +320,16 @@ def add_to_cart():
     data = request.get_json()
     username = data.get('username')
     product_id = data.get('product_id')
+    size = data.get('size') # Optional size
     
     user = User.query.filter_by(username=username).first()
     if not user:
         return jsonify({'success': False, 'message': 'User not found. Please login.'}), 401
     
-    # Check if item already exists in cart, then increment quantity
-    item = CartItem.query.filter_by(user_id=user.id, product_id=product_id).first()
-    if item:
-        item.quantity += 1
-    else:
-        new_item = CartItem(user_id=user.id, product_id=product_id)
+    # Unique combination of (user, product, size)
+    item = CartItem.query.filter_by(user_id=user.id, product_id=product_id, size=size).first()
+    if not item:
+        new_item = CartItem(user_id=user.id, product_id=product_id, size=size)
         db.session.add(new_item)
     
     db.session.commit()
@@ -384,13 +384,13 @@ def get_counts():
 def remove_from_cart():
     data = request.get_json()
     username = data.get('username')
-    product_id = data.get('product_id')
+    cart_item_id = data.get('cart_item_id') # Changed to specific item ID
     
     user = User.query.filter_by(username=username).first()
     if not user:
         return jsonify({'success': False, 'message': 'User not found'}), 401
     
-    item = CartItem.query.filter_by(user_id=user.id, product_id=product_id).first()
+    item = CartItem.query.filter_by(user_id=user.id, id=cart_item_id).first()
     if item:
         db.session.delete(item)
         db.session.commit()
@@ -536,10 +536,12 @@ def get_cart_items():
         product = get_product_by_id(ci.product_id)
         if product:
             items.append({
-                'id': ci.product_id,
+                'id': ci.product_id, # This is the product_id, not cart_item_id
+                'cart_item_id': ci.id, # Added unique ID for quantity/remove ops
                 'name': product['name'],
                 'price': product['price'],
                 'qty': ci.quantity,
+                'size': ci.size,
                 'image': product['image']
             })
     return jsonify({'success': True, 'items': items})
@@ -567,14 +569,14 @@ def get_wishlist_items():
 def update_cart_qty():
     data = request.get_json()
     username = data.get('username')
-    product_id = data.get('product_id')
+    cart_item_id = data.get('cart_item_id') # Changed to specific item ID
     change = data.get('change') # +1 or -1
     
     user = User.query.filter_by(username=username).first()
     if not user:
         return jsonify({'success': False, 'message': 'User not found'}), 401
     
-    item = CartItem.query.filter_by(user_id=user.id, product_id=product_id).first()
+    item = CartItem.query.filter_by(user_id=user.id, id=cart_item_id).first()
     if item:
         item.quantity += change
         if item.quantity <= 0:

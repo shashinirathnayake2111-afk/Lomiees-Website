@@ -90,29 +90,35 @@
         document.getElementById('cartSummary').style.display = 'block';
 
         list.innerHTML = items.map(item => {
-            const pricePerItem = item.price;
-            const totalPrice = pricePerItem * item.qty;
+            const totalPrice = item.price * item.qty;
 
             return `
                 <div class="cart-item">
-                    <button class="item-remove-circle" onclick="removeItem(${item.id})">
+                    <button class="item-remove-circle" onclick="removeItem(${item.cart_item_id})">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                     <div class="item-image">
                         <img src="${item.image}" alt="${item.name}">
                     </div>
                     <div class="item-info">
-                        <div class="item-name">${item.name}</div>
-                        <div class="item-brand">Lomiees Premium</div>
-                        <div class="item-controls">
+                        <div class="item-details">
+                            <div class="item-name">${item.name}</div>
+                            ${item.size ? `<div class="item-size-badge">Size: ${item.size}</div>` : ''}
+                            <div class="item-brand">Lomiees Premium Collection</div>
+                        </div>
+                        <div class="item-bottom-row">
                             <div class="quantity-picker">
-                                <button class="qty-btn" onclick="updateQty(${item.id}, -1)">-</button>
+                                <button class="qty-btn" onclick="updateQty(${item.cart_item_id}, -1)">
+                                    <i class="fas fa-minus"></i>
+                                </button>
                                 <span class="qty-val">${item.qty}</span>
-                                <button class="qty-btn" onclick="updateQty(${item.id}, 1)">+</button>
+                                <button class="qty-btn" onclick="updateQty(${item.cart_item_id}, 1)">
+                                    <i class="fas fa-plus"></i>
+                                </button>
                             </div>
+                            <div class="item-price">Rs. ${totalPrice.toLocaleString()}</div>
                         </div>
                     </div>
-                    <div class="item-price" style="font-weight: 700;">Rs. ${totalPrice}</div>
                 </div>
             `;
         }).join('');
@@ -120,7 +126,7 @@
         updateTotal(items);
     }
 
-    async function updateQty(productId, change) {
+    async function updateQty(cartItemId, change) {
         const currentUser = JSON.parse(localStorage.getItem('lomiees_current_user'));
         if (!currentUser) return;
 
@@ -130,14 +136,13 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     username: currentUser.username,
-                    product_id: productId,
+                    cart_item_id: cartItemId,
                     change: change
                 })
             });
             const data = await response.json();
             if (data.success) {
                 loadCart(); // Refresh the cart
-                // Also update the global count if it changed (e.g. item removed)
                 if (typeof loadCounts === 'function') loadCounts();
             }
         } catch (error) {
@@ -145,16 +150,29 @@
         }
     }
 
-    function removeItem(productId) {
-        removeFromCart(productId, () => {
-            loadCart();
+    function removeItem(cartItemId) {
+        const currentUser = JSON.parse(localStorage.getItem('lomiees_current_user'));
+        if (!currentUser) return;
+
+        fetch('/api/cart/remove', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: currentUser.username,
+                cart_item_id: cartItemId
+            })
+        }).then(res => res.json()).then(data => {
+            if (data.success) {
+                loadCart();
+                if (typeof loadCounts === 'function') loadCounts();
+            }
         });
     }
 
     function updateTotal(items) {
         const subtotal = items.reduce((sum, item) => sum + (item.price * item.qty), 0);
-        document.getElementById('subtotal').textContent = `Rs. ${subtotal}`;
-        document.getElementById('totalPrice').textContent = `Rs. ${subtotal}`;
+        document.getElementById('subtotal').textContent = `Rs. ${subtotal.toLocaleString()}`;
+        document.getElementById('totalPrice').textContent = `Rs. ${subtotal.toLocaleString()}`;
     }
 
     function handleCheckout() {

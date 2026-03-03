@@ -103,23 +103,35 @@
 
                     <div class="review-list">
                         <div class="review-item">
-                            <div class="review-label">Contact Name</div>
-                            <div class="review-content" id="rev-name">John Doe</div>
+                            <div class="review-icon"><i class="fas fa-user"></i></div>
+                            <div class="review-info">
+                                <div class="review-label">Contact Name</div>
+                                <div class="review-content" id="rev-name">John Doe</div>
+                            </div>
                         </div>
 
                         <div class="review-item">
-                            <div class="review-label">Phone Number</div>
-                            <div class="review-content" id="rev-phone">+94 71 234 5678</div>
+                            <div class="review-icon"><i class="fas fa-phone-alt"></i></div>
+                            <div class="review-info">
+                                <div class="review-label">Phone Number</div>
+                                <div class="review-content" id="rev-phone">+94 71 234 5678</div>
+                            </div>
                         </div>
 
                         <div class="review-item">
-                            <div class="review-label">Shipping Address</div>
-                            <div class="review-content" id="rev-address">123, Fashion Street, Colombo</div>
+                            <div class="review-icon"><i class="fas fa-map-marker-alt"></i></div>
+                            <div class="review-info">
+                                <div class="review-label">Shipping Address</div>
+                                <div class="review-content" id="rev-address">123, Fashion Street, Colombo</div>
+                            </div>
                         </div>
 
                         <div class="review-item">
-                            <div class="review-label">Payment Method</div>
-                            <div class="review-content" id="rev-payment">Cash on Delivery</div>
+                            <div class="review-icon"><i class="fas fa-wallet"></i></div>
+                            <div class="review-info">
+                                <div class="review-label">Payment Method</div>
+                                <div class="review-content" id="rev-payment">Cash on Delivery</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -224,14 +236,34 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        loadCheckoutSummary();
-        prefillUserDetails();
-    });
+    function saveCheckoutDraft() {
+        const draft = {
+            email: document.getElementById('checkout-email').value,
+            fname: document.getElementById('checkout-fname').value,
+            lname: document.getElementById('checkout-lname').value,
+            address: document.getElementById('checkout-address').value,
+            city: document.getElementById('checkout-city').value,
+            zip: document.getElementById('checkout-zip').value,
+            phone: document.getElementById('checkout-phone').value
+        };
+        localStorage.setItem('lomiees_checkout_draft', JSON.stringify(draft));
+    }
 
     function prefillUserDetails() {
+        // First, check for a temporary draft
+        const draft = JSON.parse(localStorage.getItem('lomiees_checkout_draft'));
         const user = JSON.parse(localStorage.getItem('lomiees_current_user'));
-        if (user) {
+
+        if (draft) {
+            document.getElementById('checkout-email').value = draft.email || '';
+            document.getElementById('checkout-fname').value = draft.fname || '';
+            document.getElementById('checkout-lname').value = draft.lname || '';
+            document.getElementById('checkout-address').value = draft.address || '';
+            document.getElementById('checkout-city').value = draft.city || '';
+            document.getElementById('checkout-zip').value = draft.zip || '';
+            document.getElementById('checkout-phone').value = draft.phone || '';
+        } else if (user) {
+            // Fallback to basic user profile if no draft exists
             document.getElementById('checkout-email').value = user.email || '';
             document.getElementById('checkout-fname').value = user.username.split(' ')[0] || '';
             document.getElementById('checkout-phone').value = user.phone || '';
@@ -355,29 +387,53 @@
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Finalizing Order...';
         btn.disabled = true;
 
+        // Cleanup draft and overlay behavior
         setTimeout(() => {
+            localStorage.removeItem('lomiees_checkout_draft');
             document.getElementById('orderSuccessOverlay').classList.add('active');
             showToast('Order placed successfully!', 'success');
         }, 2000);
     }
 
-    // Card Live Preview
-    document.getElementById('card-number').addEventListener('input', (e) => {
-        let val = e.target.value.replace(/\D/g, '').substring(0, 16);
-        let formatted = val.match(/.{1,4}/g)?.join(' ') || '';
-        e.target.value = formatted;
-        document.querySelector('.card-num-display').innerText = formatted || '•••• •••• •••• ••••';
-    });
+    document.addEventListener('DOMContentLoaded', () => {
+        loadCheckoutSummary();
+        prefillUserDetails();
 
-    document.getElementById('card-name').addEventListener('input', (e) => {
-        document.querySelector('.card-holder-view').innerText = e.target.value.toUpperCase() || 'YOUR NAME';
-    });
+        // Add auto-save listeners to all fields
+        const fields = ['email', 'fname', 'lname', 'address', 'city', 'zip', 'phone'];
+        fields.forEach(f => {
+            const el = document.getElementById(`checkout-${f}`);
+            if (el) el.addEventListener('input', saveCheckoutDraft);
+        });
 
-    document.getElementById('card-expiry').addEventListener('input', (e) => {
-        let val = e.target.value.replace(/\D/g, '').substring(0, 4);
-        if (val.length >= 2) val = val.slice(0, 2) + '/' + val.slice(2);
-        e.target.value = val;
-        document.querySelector('.card-exp-view').innerText = val || 'MM/YY';
+        // Card Live Preview Listeners
+        const cardNumInput = document.getElementById('card-number');
+        const cardNameInput = document.getElementById('card-name');
+        const cardExpInput = document.getElementById('card-expiry');
+
+        if (cardNumInput) {
+            cardNumInput.addEventListener('input', (e) => {
+                let val = e.target.value.replace(/\D/g, '').substring(0, 16);
+                let formatted = val.match(/.{1,4}/g)?.join(' ') || '';
+                e.target.value = formatted;
+                document.querySelector('.card-num-display').innerText = formatted || '•••• •••• •••• ••••';
+            });
+        }
+
+        if (cardNameInput) {
+            cardNameInput.addEventListener('input', (e) => {
+                document.querySelector('.card-holder-view').innerText = e.target.value.toUpperCase() || 'YOUR NAME';
+            });
+        }
+
+        if (cardExpInput) {
+            cardExpInput.addEventListener('input', (e) => {
+                let val = e.target.value.replace(/\D/g, '').substring(0, 4);
+                if (val.length >= 2) val = val.slice(0, 2) + '/' + val.slice(2);
+                e.target.value = val;
+                document.querySelector('.card-exp-view').innerText = val || 'MM/YY';
+            });
+        }
     });
 </script>
 {% endblock %}

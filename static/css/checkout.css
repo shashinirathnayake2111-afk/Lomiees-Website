@@ -403,7 +403,6 @@
     width: 100%;
     height: 100%;
     z-index: 99999;
-    /* Higher than everything */
     visibility: hidden;
     transition: visibility 0.4s;
 }
@@ -445,7 +444,6 @@
 
 .card-details-sheet.active .sheet-content {
     bottom: 20px;
-    /* Moved up by 20px */
 }
 
 .sheet-handle {
@@ -453,7 +451,6 @@
     height: 5px;
     background: #f0f0f0;
     margin: 0 auto 15px;
-    /* Reduced margin */
     border-radius: 10px;
 }
 
@@ -462,7 +459,6 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    /* Reduced margin */
 }
 
 .sheet-header h3 {
@@ -560,38 +556,55 @@
 
 /* Review Step Styling */
 .review-list {
-    background: #fdf8ff;
-    border: 2px solid #f1e4f4;
-    border-radius: 30px;
-    padding: 15px;
-    margin-bottom: 40px;
+    background: #ffffff;
+    border: 1px solid #eee;
+    border-radius: 25px;
+    padding: 10px;
+    margin-bottom: 35px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
 }
 
 .review-item {
     display: flex;
     align-items: center;
-    padding: 25px;
-    border-bottom: 1px solid rgba(158, 23, 158, 0.08);
+    gap: 20px;
+    padding: 20px;
+    border-bottom: 1px solid #f8f8f8;
 }
 
 .review-item:last-child {
     border-bottom: none;
 }
 
+.review-icon {
+    width: 45px;
+    height: 45px;
+    background: #fdf8ff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-purple);
+    font-size: 1.1rem;
+}
+
+.review-info {
+    flex-grow: 1;
+}
+
 .review-label {
-    width: 140px;
-    font-size: 0.85rem;
-    color: #999;
+    font-size: 0.75rem;
+    color: #888;
     text-transform: uppercase;
-    font-weight: 800;
-    letter-spacing: 0.5px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
 }
 
 .review-content {
-    flex-grow: 1;
     font-weight: 700;
-    color: #222;
-    font-size: 1.05rem;
+    color: #1a1a1a;
+    font-size: 1rem;
 }
 
 .edit-step-btn {
@@ -648,13 +661,100 @@
 .place-order-btn:hover,
 .save-card-btn:hover {
     transform: translateY(-3px);
-    /* Reduced movement */
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
 }
 
 .save-card-btn {
     margin-top: 5px;
-    /* Minimal top margin */
+}
+
+/* Order Success Overlay */
+.order-success-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.5s ease;
+}
+
+.order-success-overlay.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+.success-card {
+    background: white;
+    padding: 60px 40px;
+    border-radius: 40px;
+    text-align: center;
+    max-width: 500px;
+    width: 90%;
+    transform: translateY(30px);
+    transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.order-success-overlay.active .success-card {
+    transform: translateY(0);
+}
+
+.success-icon {
+    width: 100px;
+    height: 100px;
+    background: #27ae60;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    margin: 0 auto 30px;
+    box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3);
+}
+
+.success-card h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #1a1a1a;
+    margin-bottom: 15px;
+}
+
+.success-card p {
+    color: #666;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 35px;
+}
+
+.continue-btn {
+    background: var(--primary-purple);
+    color: white;
+    border: none;
+    padding: 18px 40px;
+    border-radius: 18px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 25px rgba(106, 14, 106, 0.2);
+}
+
+.continue-btn:hover {
+    background: var(--dark-purple);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(106, 14, 106, 0.3);
 }
 
 .back-link {

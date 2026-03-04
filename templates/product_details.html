@@ -25,6 +25,94 @@
             this.classList.add('active');
         });
     });
+
+    // Reviews Logic
+    const productId = '{{ product.id }}';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadReviews();
+    });
+
+    
+
+    function renderReviews(data) {
+        document.getElementById('totalReviewsCount').textContent = `(${data.total_reviews})`;
+
+        
+
+        list.innerHTML = data.reviews.map(r => `
+            <div class="review-card">
+                <div class="review-card-header">
+                    <span class="reviewer-name">${r.username}</span>
+                    <span class="review-date">${r.date}</span>
+                </div>
+                <div class="review-stars">
+                    ${Array(5).fill(0).map((_, i) => `<i class="fas fa-star" style="color:${i < r.rating ? '#ffc107' : '#eee'};"></i>`).join('')}
+                </div>
+                ${r.comment ? `<div class="review-comment">${r.comment}</div>` : ''}
+            </div>
+        `).join('');
+    }
+
+    function openReviewModal() {
+        const user = localStorage.getItem('lomiees_current_user');
+        if (!user) {
+            showToast('Please log in to write a review', 'error');
+            setTimeout(() => window.location.href = '/login', 2000);
+            return;
+        }
+        document.getElementById('reviewModal').classList.add('active');
+    }
+
+    function closeReviewModal() {
+        document.getElementById('reviewModal').classList.remove('active');
+        document.getElementById('reviewForm').reset();
+    }
+
+    async function submitReview(e) {
+        e.preventDefault();
+        const user = JSON.parse(localStorage.getItem('lomiees_current_user'));
+        const rating = document.querySelector('input[name="rating"]:checked');
+        const comment = document.getElementById('reviewComment').value;
+
+        if (!rating) {
+            showToast('Please select a star rating', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('submitReviewBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+        try {
+            const response = await fetch('/api/reviews/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: user.username,
+                    product_id: productId,
+                    rating: rating.value,
+                    comment: comment
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showToast(data.message, 'success');
+                closeReviewModal();
+                loadReviews(); // refresh list
+            } else {
+                showToast(data.message || 'Error submitting review', 'error');
+            }
+        } catch (error) {
+            console.error('Submit review error:', error);
+            showToast('Network error occurred.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Submit Review';
+        }
+    }
 </script>
 {% endblock %}
 
@@ -131,6 +219,98 @@
                     <span>30-Day Easy Returns</span>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Animated Review Marquee Section -->
+    <section class="review-marquee-section">
+        <h2 class="section-title text-center" style="margin-bottom: 40px;">Love from our customers</h2>
+        <div class="marquee-container">
+            <div class="marquee-track">
+                <!-- Group 1 -->
+                <div class="marquee-card">
+                    <div class="marquee-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p class="marquee-text">"Absolutely love this piece! The quality is outstanding and it fits
+                        perfectly. Will definitely buy more."</p>
+                    <p class="marquee-author">- Sarah M.</p>
+                </div>
+                <div class="marquee-card">
+                    <div class="marquee-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p class="marquee-text">"Fast shipping and the material is so soft. Exceeded my expectations!"</p>
+                    <p class="marquee-author">- Jason D.</p>
+                </div>
+                <div class="marquee-card">
+                    <div class="marquee-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                    </div>
+                    <p class="marquee-text">"Great fit and stylish design. I've gotten so many compliments already."</p>
+                    <p class="marquee-author">- Emily R.</p>
+                </div>
+                <div class="marquee-card">
+                    <div class="marquee-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p class="marquee-text">"Premium feel without the premium price tag. Highly recommend Lomiees!"</p>
+                    <p class="marquee-author">- Michael T.</p>
+                </div>
+
+                <!-- Duplicate Group 1 for infinite scroll -->
+                <div class="marquee-card">
+                    <div class="marquee-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p class="marquee-text">"Absolutely love this piece! The quality is outstanding and it fits
+                        perfectly. Will definitely buy more."</p>
+                    <p class="marquee-author">- Sarah M.</p>
+                </div>
+                <div class="marquee-card">
+                    <div class="marquee-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p class="marquee-text">"Fast shipping and the material is so soft. Exceeded my expectations!"</p>
+                    <p class="marquee-author">- Jason D.</p>
+                </div>
+                <div class="marquee-card">
+                    <div class="marquee-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                    </div>
+                    <p class="marquee-text">"Great fit and stylish design. I've gotten so many compliments already."</p>
+                    <p class="marquee-author">- Emily R.</p>
+                </div>
+                <div class="marquee-card">
+                    <div class="marquee-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    <p class="marquee-text">"Premium feel without the premium price tag. Highly recommend Lomiees!"</p>
+                    <p class="marquee-author">- Michael T.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Review Modal -->
+    <div class="review-modal-overlay" id="reviewModal">
+        <div class="review-modal">
+            <button class="close-modal" onclick="closeReviewModal()"><i class="fas fa-times"></i></button>
+            <h3 style="margin-bottom:20px; font-family:'Fredoka', sans-serif;">Write a Review</h3>
+            <form class="review-form" id="reviewForm" onsubmit="submitReview(event)">
+                <label style="display:block; margin-bottom:10px; font-weight:600;">Rating</label>
+                <div class="star-rating-input">
+                    <input type="radio" id="star5" name="rating" value="5" required /><label for="star5"
+                        title="5 stars"><i class="fas fa-star"></i></label>
+                    <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="4 stars"><i
+                            class="fas fa-star"></i></label>
+                    <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="3 stars"><i
+                            class="fas fa-star"></i></label>
+                    <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="2 stars"><i
+                            class="fas fa-star"></i></label>
+                    <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="1 star"><i
+                            class="fas fa-star"></i></label>
+                </div>
+
+                <label style="display:block; margin-bottom:10px; font-weight:600;">Comment (Optional)</label>
+                <textarea id="reviewComment" placeholder="Share your thoughts about this product..."></textarea>
+
+                <button type="submit" class="submit-review-btn" id="submitReviewBtn">Submit Review</button>
+            </form>
         </div>
     </div>
 

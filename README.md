@@ -11,7 +11,18 @@ Lomiees is a modern, high-end e-commerce platform built with Flask and Vanilla J
 - **Active Navigation**: The header banner dynamically highlights the active category tab with a persistent underline, making it easy for users to know where they are.
 - **Dark Mode**: Toggle between light and dark themes for a personalized viewing experience. Choice is persisted in your browser!
 
-### 📐 Sizely: AI Size Recommender
+### 🛒 Advanced Checkout Flow
+- **Multi-Step Checkout**: A streamlined 3-step process (Information, Payment, Review) that reduces cognitive load.
+- **Form Persistence**: Real-time draft saving ensures information isn't lost during page refreshes or navigation.
+- **Live Card Preview**: As users type their credit card details, a virtual card updates in real-time with automatic number formatting.
+- **Interactive Card Sheet**: A bottom-up animated sheet for entering payment details, optimizing vertical space.
+
+### 📜 Order Management
+- **Dynamic Order History**: Users can track their "My Orders" page, which fetches real purchase data from the backend.
+- **Order Processing**: Automatic transition from cart to order record with unique order numbers and status tracking.
+- **Automated Cart Cleanup**: The cart is intelligently cleared only after a successful order placement.
+
+### 📏 Sizely: AI Size Recommender
 - Input your gender, weight, and height to receive a personalized clothing size recommendation (XS-XXL) based on our precision size charts.
 
 ### 👗 Lookly: Virtual Try-On
@@ -19,7 +30,7 @@ Lomiees is a modern, high-end e-commerce platform built with Flask and Vanilla J
 
 ### 👤 User Accounts
 - Secure signup and login system.
-- Personalized dashboard with profile management and wishlists.
+- Personalized dashboard with profile management, wishlists, and order history.
 
 ## 🛠️ Technology Stack
 - **Backend**: Python 3.x, Flask, Flask-SQLAlchemy (SQLite)

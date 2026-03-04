@@ -59,6 +59,18 @@ class OrderItem(db.Model):
     color = db.Column(db.String(100), nullable=True)
     image = db.Column(db.String(255), nullable=True)
 
+class Review(db.Model):
+    __tablename__ = 'reviews'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    product_id = db.Column(db.Integer, nullable=False)
+    rating = db.Column(db.Integer, nullable=False) # 1-5 stars
+    comment = db.Column(db.Text, nullable=True)
+    date = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    
+    user = db.relationship('User', backref=db.backref('reviews', lazy=True))
+
+
 class SizeChart(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     gender = db.Column(db.String(10), nullable=False)  # 'Men', 'Women', 'Kids'
@@ -612,6 +624,11 @@ def create_order():
     if not user or not user.cart_items:
         return jsonify({'success': False, 'message': 'User not found or cart is empty'}), 400
     
+    if data.get('save_details'):
+        user.phone = data.get('phone')
+        user.address = data.get('address')
+
+    
     # Calculate Total & Prepare Items
     total = 0
     order_items_data = []
@@ -737,6 +754,70 @@ def update_cart_qty():
         db.session.commit()
         return jsonify({'success': True})
     return jsonify({'success': False, 'message': 'Item not found'}), 404
+
+@app.route('/api/reviews/add', methods=['POST'])
+def add_review():
+    data = request.get_json()
+    username = data.get('username')
+    product_id = data.get('product_id')
+    rating = data.get('rating')
+    comment = data.get('comment')
+    
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({'success': False, 'message': 'User not found. Please log in.'}), 401
+        
+    if not product_id or not rating:
+        return jsonify({'success': False, 'message': 'Product ID and Rating are required.'}), 400
+        
+    # Check if user already reviewed this product
+    existing_review = Review.query.filter_by(user_id=user.id, product_id=product_id).first()
+    if existing_review:
+        return jsonify({'success': False, 'message': 'You have already reviewed this product.'}), 400
+        
+    new_review = Review(
+        user_id=user.id,
+        product_id=product_id,
+        rating=int(rating),
+        comment=comment
+    )
+    db.session.add(new_review)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': 'Review submitted successfully!'})
+
+@app.route('/api/reviews/get', methods=['GET'])
+def get_reviews():
+    product_id = request.args.get('product_id', type=int)
+    if not product_id:
+        return jsonify({'success': False, 'message': 'Product ID is required'}), 400
+        
+    reviews = Review.query.filter_by(product_id=product_id).order_by(Review.date.desc()).all()
+    
+    reviews_data = []
+    total_rating = 0
+    for r in reviews:
+        reviewer_name = r.user.username
+        # Format date as 'Feb 28, 2026'
+        date_str = r.date.strftime('%b %d, %Y')
+        total_rating += r.rating
+        
+        reviews_data.append({
+            'id': r.id,
+            'username': reviewer_name,
+            'rating': r.rating,
+            'comment': r.comment,
+            'date': date_str
+        })
+        
+    avg_rating = round(total_rating / len(reviews), 1) if reviews else 0.0
+    
+    return jsonify({
+        'success': True, 
+        'reviews': reviews_data,
+        'average_rating': avg_rating,
+        'total_reviews': len(reviews)
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)

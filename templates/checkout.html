@@ -62,6 +62,15 @@
                         </div>
                     </div>
 
+                    <div class="save-details-checkbox" style="margin-bottom: 25px;">
+                        <label
+                            style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.95rem; color: #555;">
+                            <input type="checkbox" id="save-future-details" checked
+                                style="width: auto; margin: 0; transform: scale(1.2); accent-color: var(--primary-purple);">
+                            Save these details for future orders
+                        </label>
+                    </div>
+
                     <div class="form-section">
                         <h3>Payment Method</h3>
                         <div class="payment-options">
@@ -388,12 +397,18 @@
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Finalizing Order...';
         btn.disabled = true;
 
+        const saveDetails = document.getElementById('save-future-details').checked;
+        const phoneVal = document.getElementById('checkout-phone').value;
+        const addressVal = `${document.getElementById('checkout-address').value}, ${document.getElementById('checkout-city').value}, ${document.getElementById('checkout-zip').value}`;
+        const fullNameVal = `${document.getElementById('checkout-fname').value} ${document.getElementById('checkout-lname').value}`;
+
         const orderData = {
             username: user.username,
-            full_name: `${document.getElementById('checkout-fname').value} ${document.getElementById('checkout-lname').value}`,
-            phone: document.getElementById('checkout-phone').value,
-            address: `${document.getElementById('checkout-address').value}, ${document.getElementById('checkout-city').value}, ${document.getElementById('checkout-zip').value}`,
-            payment_method: selectedPayment
+            full_name: fullNameVal,
+            phone: phoneVal,
+            address: addressVal,
+            payment_method: selectedPayment,
+            save_details: saveDetails
         };
 
         try {
@@ -407,6 +422,16 @@
             if (data.success) {
                 // Cleanup draft and overlay behavior
                 localStorage.removeItem('lomiees_checkout_draft');
+
+                // Update local user object if details were saved
+                if (saveDetails) {
+                    user.phone = phoneVal;
+                    user.address = addressVal;
+                    // Note: We don't save full_name back to username to avoid breaking login credentials, 
+                    // we usually just keep the phone and address updated.
+                    localStorage.setItem('lomiees_current_user', JSON.stringify(user));
+                }
+
                 document.getElementById('orderSuccessOverlay').classList.add('active');
                 showToast('Order placed successfully!', 'success');
             } else {

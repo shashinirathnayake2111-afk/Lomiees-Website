@@ -125,8 +125,11 @@ def seed_size_chart():
     db.session.commit()
 
 with app.app_context():
-    db.create_all()
-    seed_size_chart()
+    try:
+        db.create_all()
+        seed_size_chart()
+    except Exception as e:
+        print(f"Database initialization error: {e}")
 
 @app.route("/")
 def home():

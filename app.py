@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -7,6 +9,11 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+if os.environ.get('VERCEL'):
+    db_path = '/tmp/database.db'
+else:
+    db_path = 'database.db'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

@@ -326,8 +326,8 @@ def try_on_api():
     file = request.files['user_image']
     clothing_id = request.form.get('clothing_id')
     
-    if file.filename == '':
-        return jsonify({'success': False, 'message': 'No selected file'}), 400
+    if file.filename == '' or not allowed_file(file.filename) or not clothing_id:
+        return jsonify({'success': False, 'message': 'Invalid file format or clothing item'}), 400
         
     if not clothing_id:
         return jsonify({'success': False, 'message': 'No clothing item selected'}), 400
@@ -745,7 +745,7 @@ def get_wishlist_items():
 
 @app.route('/api/cart/update_qty', methods=['POST'])
 def update_cart_qty():
-    data = request.get_json()
+    data = request.get_json() or {}
     username = data.get('username')
     cart_item_id = data.get('cart_item_id') # Changed to specific item ID
     change = data.get('change') # +1 or -1
@@ -818,7 +818,7 @@ def get_reviews():
             'date': date_str
         })
         
-    avg_rating = round(total_rating / len(reviews), 1) if reviews else 0.0
+    avg_rating = round(total_rating / len(reviews), 1) if len(reviews) > 0 else 0.0
     
     return jsonify({
         'success': True, 

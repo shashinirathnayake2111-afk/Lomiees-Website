@@ -4,3 +4,4 @@ Werkzeug==3.0.1
 Pillow
 gunicorn
 opencv-python-headless
+mediapipe

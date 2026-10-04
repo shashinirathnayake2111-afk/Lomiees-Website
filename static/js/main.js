@@ -423,56 +423,56 @@ const products = [
         name: 'Amani Aurelia Linen Wrap Dress',
         brand: 'More Details',
         currentPrice: 'Rs.3400',
-        image: '/static/images/card 01.png'
+        image: '/static/images/card1.png'
     },
     {
         id: 2,
         name: 'Mens Casual Polo T-shirt',
         brand: 'More Details',
         currentPrice: 'Rs.2890',
-        image: '/static/images/card 02.png'
+        image: '/static/images/card2.png'
     },
     {
         id: 3,
         name: 'Sleeveless Linen Jumpsuit',
         brand: 'More Details',
         currentPrice: 'Rs.6530',
-        image: '/static/images/card 03.png'
+        image: '/static/images/card3.png'
     },
     {
         id: 4,
         name: 'Sleeveless Frock',
         brand: 'More Details',
         currentPrice: 'Rs.2750',
-        image: '/static/images/card 04.png'
+        image: '/static/images/card4.png'
     },
     {
         id: 5,
         name: 'Red Short Sleeve Party Wear',
         brand: 'More Details',
         currentPrice: 'Rs.11390',
-        image: '/static/images/card 05.jpg'
+        image: '/static/images/card5.jpg'
     },
     {
         id: 6,
         name: 'Women Linen Office Pant',
         brand: 'More Details',
         currentPrice: 'Rs.2700',
-        image: '/static/images/card 06.png'
+        image: '/static/images/card6.png'
     },
     {
         id: 7,
         name: 'Long Sleeve Mens White Shirt',
         brand: 'More Details',
         currentPrice: 'Rs.2700',
-        image: '/static/images/card 07.jpg'
+        image: '/static/images/card7.jpg'
     },
     {
         id: 8,
         name: 'Short Sleeve Black Frock',
         brand: 'More Details',
         currentPrice: 'Rs.2400',
-        image: '/static/images/card 08.jpg'
+        image: '/static/images/card8.jpg'
     }
 ];
 

@@ -286,7 +286,6 @@
     height: 420px;
     overflow: hidden;
     background-color: #6a0e6a;
-    /* Purpose: Match theme to hide sub-pixel gaps */
 }
 
 .product-image {
@@ -365,7 +364,6 @@
 
 .circular-cart-btn {
     background: #6a0e6a !important;
-    /* Forces the purple background from the user's image */
     color: white !important;
     border: none;
     width: 45px;
@@ -523,7 +521,6 @@
     font-size: 1.1rem;
     font-weight: 700;
     text-transform: none;
-    /* Matches the image better than uppercase */
     letter-spacing: 0.5px;
 }
 
@@ -635,7 +632,7 @@
 }
 
 .category-info h3 {
-    color: var(--white);
+    color: white;
     font-size: 2.2rem;
     font-weight: 800;
     margin-bottom: 15px;
@@ -647,7 +644,7 @@
     gap: 10px;
     background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(10px);
-    color: var(--white);
+    color: white;
     padding: 10px 20px;
     border-radius: 50px;
     text-decoration: none;
